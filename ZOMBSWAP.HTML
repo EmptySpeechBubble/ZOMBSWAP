@@ -22,11 +22,42 @@
         }
 
         #game-container {
-            position: relative;
+            display: flex;
             width: 100vw;
             height: 100vh;
-            overflow: auto;
+        }
+
+        /* Left Sidebar for UI */
+        #ui-container {
+            width: 300px;
             padding: 20px;
+            background: #0a0a0a;
+            border-right: 1px solid #404040;
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        /* ASCII Header */
+        #ascii-header {
+            margin-bottom: 20px;
+            color: #00ff00;
+            font-size: 10px;
+            line-height: 1.2;
+        }
+
+        .ascii-box {
+            background: #0a0a0a;
+            border: 1px solid #404040;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+
+        /* Game Area (right side) */
+        #game-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
         }
 
         /* Canvas for physics - HIDDEN in ASCII mode */
@@ -39,7 +70,7 @@
             pointer-events: none;
         }
 
-        /* Main game area */
+        /* Main game board */
         #game-board {
             position: absolute;
             top: 0;
@@ -47,33 +78,6 @@
             width: 100%;
             height: 100%;
             z-index: 2;
-        }
-
-        /* ASCII Header */
-        #ascii-header {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #00ff00;
-            font-size: 12px;
-        }
-
-        /* UI Panels - ASCII style */
-        #ui-container {
-            position: absolute;
-            top: 100px;
-            left: 20px;
-            right: 20px;
-            z-index: 100;
-            pointer-events: none;
-        }
-
-        .ascii-box {
-            background: #0a0a0a;
-            border: 1px solid #404040;
-            padding: 10px;
-            margin-bottom: 10px;
-            font-size: 13px;
-            pointer-events: auto;
         }
 
         .ascii-box-title {
@@ -99,29 +103,33 @@
         /* Column Layout - ASCII style */
         #column-container {
             position: absolute;
-            bottom: 100px;
+            bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
             width: 700px;
-            height: 350px;
+            height: 400px;
             display: flex;
             z-index: 3;
             pointer-events: none;
-            border: 1px solid #404040;
-            background: #0a0a0a;
+            border: 2px solid #606060;
+            background: #000000;
         }
 
         .column {
             flex: 1;
-            border-left: 1px solid #202020;
+            border-left: 1px solid #303030;
             position: relative;
             pointer-events: auto;
             cursor: pointer;
             transition: background-color 0.1s;
         }
 
+        .column:first-child {
+            border-left: none;
+        }
+
         .column:hover {
-            background-color: #151515;
+            background-color: #1a1a1a;
         }
 
         .column.selected {
@@ -133,11 +141,11 @@
         .column::after {
             content: attr(data-column-index);
             position: absolute;
-            bottom: -20px;
+            bottom: -25px;
             left: 50%;
             transform: translateX(-50%);
-            color: #404040;
-            font-size: 11px;
+            color: #606060;
+            font-size: 12px;
         }
 
         /* Dice Elements - ASCII style */
@@ -164,8 +172,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
-            border: 1px solid #303030;
+            font-size: 26px;
+            border: 2px solid #606060;
             background: #0a0a0a;
             backface-visibility: hidden;
         }
@@ -173,27 +181,27 @@
         /* Bottom UI - Level Selector */
         #level-selector {
             position: absolute;
-            bottom: 40px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 5px;
+            gap: 8px;
             z-index: 100;
-            font-size: 12px;
+            font-size: 11px;
         }
 
         .level-btn {
             background: #0a0a0a;
-            border: 1px solid #404040;
+            border: 1px solid #606060;
             color: #808080;
-            padding: 5px 10px;
+            padding: 6px 12px;
             cursor: pointer;
             font-family: 'Courier New', monospace;
             transition: all 0.1s;
         }
 
         .level-btn:hover {
-            background: #151515;
+            background: #1a1a1a;
             color: #c0c0c0;
         }
 
@@ -203,30 +211,23 @@
             border-color: #00ff00;
         }
 
-        /* Action Buttons - ASCII style */
-        #action-panel {
-            position: absolute;
-            top: 400px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-            text-align: center;
-        }
-
+        /* Action Buttons - in sidebar */
         .action-btn {
             background: #0a0a0a;
-            border: 1px solid #404040;
+            border: 1px solid #606060;
             color: #808080;
             padding: 8px 15px;
             cursor: pointer;
             font-family: 'Courier New', monospace;
-            font-size: 12px;
-            margin: 5px;
+            font-size: 11px;
+            margin: 5px 0;
+            width: 100%;
+            display: block;
             transition: all 0.1s;
         }
 
         .action-btn:hover:not(:disabled) {
-            background: #151515;
+            background: #1a1a1a;
             color: #c0c0c0;
             border-color: #808080;
         }
@@ -234,21 +235,23 @@
         .action-btn:disabled {
             opacity: 0.3;
             cursor: not-allowed;
+            color: #404040;
         }
 
-        /* Pegs - ASCII characters */
+        /* Pegs - ASCII characters with better visibility */
         .peg {
             position: absolute;
             pointer-events: none;
             z-index: 5;
             font-family: 'Courier New', monospace;
-            font-size: 14px;
-            color: #303030;
+            font-size: 16px;
+            color: #606060;
+            text-shadow: 0 0 3px #404040;
         }
 
         /* Notifications - ASCII style */
         #notification {
-            position: absolute;
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -256,21 +259,26 @@
             border: 2px solid #00ff00;
             color: #00ff00;
             padding: 20px 40px;
-            font-size: 14px;
+            font-size: 13px;
             font-family: 'Courier New', monospace;
-            z-index: 1000;
+            z-index: 10000;
             display: none;
             text-align: center;
+            min-width: 300px;
+        }
+
+        #notification-text {
+            padding: 10px 0;
         }
 
         #notification::before {
-            content: "╔════════════════════╗";
+            content: "╔════════════════════════════════╗";
             display: block;
             margin-bottom: 5px;
         }
 
         #notification::after {
-            content: "╚════════════════════╝";
+            content: "╚════════════════════════════════╝";
             display: block;
             margin-top: 5px;
         }
@@ -278,60 +286,69 @@
 </head>
 <body>
     <div id="game-container">
-        <!-- ASCII Header -->
-        <pre id="ascii-header">
-╔═══════════════════════════════════════════════════════════════════════╗
-║                          Z O M B S W A P                              ║
-║                      Zombie Mall Dice Survival                        ║
-╚═══════════════════════════════════════════════════════════════════════╝
-        </pre>
-
-        <!-- UI Container -->
+        <!-- Left Sidebar UI -->
         <div id="ui-container">
-            <div class="ascii-box" style="width: 300px;">
+            <!-- ASCII Header -->
+            <pre id="ascii-header">
+╔══════════════════════╗
+║   Z O M B S W A P    ║
+║  Zombie Mall Dice    ║
+╚══════════════════════╝
+            </pre>
+
+            <!-- Resources Box -->
+            <div class="ascii-box">
                 <div class="ascii-box-title">┌─ RESOURCES ─┐</div>
                 <div class="resource-line">Score: <span id="score-value">0</span></div>
                 <div class="resource-line">Zombies: <span id="zombie-value">5</span></div>
                 <div class="resource-line">Humans: <span id="human-value">10</span></div>
                 <div class="resource-line">Babies: <span id="baby-value">3</span></div>
                 <div class="resource-line">Shelters: <span id="shelter-value">0</span></div>
-                <div class="ascii-box-title" style="margin-top: 10px;">┌─ DICE POOL ─┐</div>
+            </div>
+
+            <!-- Dice Pool Box -->
+            <div class="ascii-box">
+                <div class="ascii-box-title">┌─ DICE POOL ─┐</div>
                 <div id="dice-pool-list">
                     <!-- Dynamically populated -->
                 </div>
             </div>
+
+            <!-- Action Buttons -->
+            <div class="ascii-box">
+                <div class="ascii-box-title">┌─ ACTIONS ─┐</div>
+                <button class="action-btn" id="make-baby-btn">[ Make Baby ]</button>
+                <button class="action-btn" id="drop-dice-btn">[ Drop Dice ]</button>
+            </div>
         </div>
 
-        <!-- Physics Canvas (hidden) -->
-        <canvas id="physics-canvas"></canvas>
+        <!-- Right Game Area -->
+        <div id="game-area">
+            <!-- Physics Canvas (hidden) -->
+            <canvas id="physics-canvas"></canvas>
 
-        <!-- Game Board -->
-        <div id="game-board">
-            <!-- Pegs and dice will be added here dynamically -->
+            <!-- Game Board -->
+            <div id="game-board">
+                <!-- Pegs and dice will be added here dynamically -->
+            </div>
+
+            <!-- Column Container -->
+            <div id="column-container">
+                <!-- 7 columns -->
+            </div>
+
+            <!-- Level Selector -->
+            <div id="level-selector">
+                <button class="level-btn active" data-level="lobby">[ LOBBY ]</button>
+                <button class="level-btn" data-level="food">[ FOOD ]</button>
+                <button class="level-btn" data-level="arcade">[ ARCADE ]</button>
+                <button class="level-btn" data-level="clothing">[ CLOTHING ]</button>
+            </div>
         </div>
-
-        <!-- Column Container -->
-        <div id="column-container">
-            <!-- 7 columns -->
-        </div>
-
-        <!-- Action Panel -->
-        <div id="action-panel">
-            <button class="action-btn" id="make-baby-btn">[ Make Baby ]</button>
-            <button class="action-btn" id="drop-dice-btn">[ Drop Dice ]</button>
-        </div>
-
-        <!-- Level Selector -->
-        <div id="level-selector">
-            <button class="level-btn active" data-level="lobby">[ LOBBY ]</button>
-            <button class="level-btn" data-level="food">[ FOOD ]</button>
-            <button class="level-btn" data-level="arcade">[ ARCADE ]</button>
-            <button class="level-btn" data-level="clothing">[ CLOTHING ]</button>
-        </div>
-
-        <!-- Notification -->
-        <div id="notification"><div id="notification-text"></div></div>
     </div>
+
+    <!-- Notification (global overlay) -->
+    <div id="notification"><div id="notification-text"></div></div>
 
     <script>
         // ========================================
@@ -407,41 +424,46 @@
             engine = Engine.create();
             engine.world.gravity.y = 0.5;
 
+            // Get game area dimensions (excluding sidebar)
+            const gameArea = document.getElementById('game-area');
+            const gameWidth = gameArea.offsetWidth;
+            const gameHeight = gameArea.offsetHeight;
+
             // Create renderer
             const canvas = document.getElementById('physics-canvas');
             render = Render.create({
                 canvas: canvas,
                 engine: engine,
                 options: {
-                    width: window.innerWidth,
-                    height: window.innerHeight,
+                    width: gameWidth,
+                    height: gameHeight,
                     wireframes: false,
                     background: 'transparent'
                 }
             });
 
-            // Create boundaries
+            // Create boundaries (relative to game area)
             ground = Bodies.rectangle(
-                window.innerWidth / 2,
-                window.innerHeight + 25,
-                window.innerWidth,
+                gameWidth / 2,
+                gameHeight + 25,
+                gameWidth,
                 50,
                 { isStatic: true, render: { fillStyle: '#00ff88' } }
             );
 
             leftWall = Bodies.rectangle(
                 -25,
-                window.innerHeight / 2,
+                gameHeight / 2,
                 50,
-                window.innerHeight,
+                gameHeight,
                 { isStatic: true, render: { fillStyle: '#00ff88' } }
             );
 
             rightWall = Bodies.rectangle(
-                window.innerWidth + 25,
-                window.innerHeight / 2,
+                gameWidth + 25,
+                gameHeight / 2,
                 50,
-                window.innerHeight,
+                gameHeight,
                 { isStatic: true, render: { fillStyle: '#00ff88' } }
             );
 
@@ -635,14 +657,17 @@
         // PHYSICS UPDATE
         // ========================================
         function updateDicePositions() {
+            const gameArea = document.getElementById('game-area');
+            const gameHeight = gameArea.offsetHeight;
+
             activeDice.forEach(dice => {
                 if (!dice.settled) {
                     // Update position
                     dice.element.style.left = (dice.body.position.x - 20) + 'px';
                     dice.element.style.top = (dice.body.position.y - 20) + 'px';
 
-                    // Check if settled
-                    if (dice.body.position.y > window.innerHeight - 450 &&
+                    // Check if settled (near bottom of game area)
+                    if (dice.body.position.y > gameHeight - 500 &&
                         Math.abs(dice.body.velocity.y) < 0.1) {
                         settleDice(dice);
                     }
@@ -659,9 +684,13 @@
 
             // Determine column
             const containerRect = document.getElementById('column-container').getBoundingClientRect();
+            const gameAreaRect = document.getElementById('game-area').getBoundingClientRect();
             const diceX = dice.body.position.x;
             const columnWidth = containerRect.width / 7;
-            const relativeX = diceX - (window.innerWidth - containerRect.width) / 2;
+
+            // Calculate relative X position within the column container
+            const containerLeft = containerRect.left - gameAreaRect.left;
+            const relativeX = diceX - containerLeft;
             const columnIndex = Math.floor(relativeX / columnWidth);
 
             if (columnIndex >= 0 && columnIndex < 7) {
@@ -677,13 +706,15 @@
             dice.columnIndex = columnIndex;
             gameState.columnStacks[columnIndex].push(dice);
 
-            // Position in column
+            // Position in column (relative to game area, not viewport)
             const stackHeight = gameState.columnStacks[columnIndex].length;
             const containerRect = document.getElementById('column-container').getBoundingClientRect();
+            const gameAreaRect = document.getElementById('game-area').getBoundingClientRect();
             const columnWidth = containerRect.width / 7;
 
-            const newX = containerRect.left + (columnIndex * columnWidth) + (columnWidth / 2);
-            const newY = containerRect.bottom - (stackHeight * 45) - 20;
+            // Calculate position relative to game area
+            const newX = (containerRect.left - gameAreaRect.left) + (columnIndex * columnWidth) + (columnWidth / 2);
+            const newY = (containerRect.bottom - gameAreaRect.top) - (stackHeight * 45) - 20;
 
             dice.element.style.left = (newX - 20) + 'px';
             dice.element.style.top = (newY - 20) + 'px';
@@ -818,12 +849,13 @@
         function repositionColumn(columnIndex) {
             const stack = gameState.columnStacks[columnIndex];
             const containerRect = document.getElementById('column-container').getBoundingClientRect();
+            const gameAreaRect = document.getElementById('game-area').getBoundingClientRect();
             const columnWidth = containerRect.width / 7;
 
             stack.forEach((dice, index) => {
                 const stackHeight = index + 1;
-                const newX = containerRect.left + (columnIndex * columnWidth) + (columnWidth / 2);
-                const newY = containerRect.bottom - (stackHeight * 45) - 20;
+                const newX = (containerRect.left - gameAreaRect.left) + (columnIndex * columnWidth) + (columnWidth / 2);
+                const newY = (containerRect.bottom - gameAreaRect.top) - (stackHeight * 45) - 20;
 
                 dice.element.style.left = (newX - 20) + 'px';
                 dice.element.style.top = (newY - 20) + 'px';
@@ -946,7 +978,10 @@
             if (gameState.dicePool[poolKey] > 0) {
                 gameState.dicePool[poolKey]--;
 
-                const x = window.innerWidth / 2 + (Math.random() - 0.5) * 200;
+                // Calculate spawn position relative to game area
+                const gameArea = document.getElementById('game-area');
+                const gameWidth = gameArea.offsetWidth;
+                const x = gameWidth / 2 + (Math.random() - 0.5) * 300;
                 const y = 50;
 
                 createDice(x, y, DICE_SETS[gameState.currentLevel]);
@@ -1064,8 +1099,12 @@
 
         function createPegs(config) {
             const containerRect = document.getElementById('column-container').getBoundingClientRect();
+            const gameAreaRect = document.getElementById('game-area').getBoundingClientRect();
             const columnWidth = containerRect.width / 7;
-            const pegArea = { top: 150, bottom: containerRect.top };
+
+            // Calculate peg area relative to game area
+            const containerTop = containerRect.top - gameAreaRect.top;
+            const pegArea = { top: 100, bottom: containerTop };
 
             // ASCII characters for different peg types
             const pegChars = {
@@ -1075,18 +1114,20 @@
             };
 
             const pegChar = pegChars[config.shape] || '●';
+            const containerLeft = containerRect.left - gameAreaRect.left;
 
             // Create pegs
-            for (let row = 0; row < 8; row++) {
+            for (let row = 0; row < 7; row++) {
                 for (let col = 0; col < 7; col++) {
-                    // Skip center of columns to allow clear paths
-                    if (Math.random() > 0.3) continue;
+                    // Skip some pegs randomly but ensure coverage
+                    if (Math.random() > 0.4) continue;
 
-                    const x = containerRect.left + col * columnWidth + columnWidth / 2 + (Math.random() - 0.5) * 40;
-                    const y = pegArea.top + row * 50 + (Math.random() - 0.5) * 20;
+                    // Position relative to game area
+                    const xLocal = containerLeft + col * columnWidth + columnWidth / 2 + (Math.random() - 0.5) * 40;
+                    const yLocal = pegArea.top + row * 50 + (Math.random() - 0.5) * 20;
 
                     // Add physics peg
-                    const pegBody = Bodies.circle(x, y, config.size / 2, {
+                    const pegBody = Bodies.circle(xLocal, yLocal, config.size / 2, {
                         isStatic: true,
                         restitution: 0.8,
                         friction: 0.005,
@@ -1098,8 +1139,8 @@
                     const pegElement = document.createElement('div');
                     pegElement.className = 'peg';
                     pegElement.textContent = pegChar;
-                    pegElement.style.left = (x - 7) + 'px';
-                    pegElement.style.top = (y - 10) + 'px';
+                    pegElement.style.left = (xLocal - 7) + 'px';
+                    pegElement.style.top = (yLocal - 10) + 'px';
                     document.getElementById('game-board').appendChild(pegElement);
                 }
             }
