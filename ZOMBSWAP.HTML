@@ -13,27 +13,30 @@
         }
 
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
-            color: #eee;
+            font-family: 'Courier New', 'Courier', monospace;
+            background: #0a0a0a;
+            color: #c0c0c0;
             overflow: hidden;
             height: 100vh;
+            line-height: 1.4;
         }
 
         #game-container {
             position: relative;
             width: 100vw;
             height: 100vh;
-            overflow: hidden;
+            overflow: auto;
+            padding: 20px;
         }
 
-        /* Canvas for physics */
+        /* Canvas for physics - HIDDEN in ASCII mode */
         #physics-canvas {
             position: absolute;
             top: 0;
             left: 0;
             z-index: 1;
-            opacity: 0.3; /* Semi-transparent for debugging */
+            opacity: 0;
+            pointer-events: none;
         }
 
         /* Main game area */
@@ -46,114 +49,105 @@
             z-index: 2;
         }
 
-        /* UI Panels */
-        #ui-top {
+        /* ASCII Header */
+        #ascii-header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #00ff00;
+            font-size: 12px;
+        }
+
+        /* UI Panels - ASCII style */
+        #ui-container {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            display: flex;
-            justify-content: space-between;
+            top: 100px;
+            left: 20px;
+            right: 20px;
             z-index: 100;
             pointer-events: none;
         }
 
-        .ui-panel {
-            background: rgba(0, 0, 0, 0.85);
-            border: 2px solid #00ff88;
-            border-radius: 10px;
-            padding: 15px;
-            min-width: 200px;
-            pointer-events: auto;
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
-        }
-
-        .ui-panel h3 {
-            color: #00ff88;
+        .ascii-box {
+            background: #0a0a0a;
+            border: 1px solid #404040;
+            padding: 10px;
             margin-bottom: 10px;
-            font-size: 16px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-size: 13px;
+            pointer-events: auto;
         }
 
-        .resource-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 8px 0;
-            font-size: 18px;
+        .ascii-box-title {
+            color: #00ff00;
+            margin-bottom: 5px;
         }
 
-        .resource-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .resource-line {
+            margin: 3px 0;
+            color: #c0c0c0;
         }
 
-        .resource-value {
-            font-weight: bold;
-            color: #00ff88;
-            min-width: 40px;
-            text-align: right;
+        .resource-line span {
+            color: #ffffff;
         }
 
         /* Dice Pool Display */
-        #dice-pool-panel {
-            max-width: 300px;
+        .dice-pool-line {
+            margin: 2px 0;
+            font-size: 12px;
         }
 
-        .dice-pool-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 5px 0;
-            font-size: 14px;
-        }
-
-        .dice-pool-emoji {
-            display: flex;
-            gap: 3px;
-        }
-
-        /* Column Layout */
+        /* Column Layout - ASCII style */
         #column-container {
             position: absolute;
-            bottom: 0;
+            bottom: 100px;
             left: 50%;
             transform: translateX(-50%);
             width: 700px;
-            height: 400px;
+            height: 350px;
             display: flex;
             z-index: 3;
             pointer-events: none;
+            border: 1px solid #404040;
+            background: #0a0a0a;
         }
 
         .column {
             flex: 1;
-            border-left: 2px dashed rgba(255, 255, 255, 0.2);
-            border-right: 2px dashed rgba(255, 255, 255, 0.2);
+            border-left: 1px solid #202020;
             position: relative;
             pointer-events: auto;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: background-color 0.1s;
         }
 
         .column:hover {
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: #151515;
         }
 
         .column.selected {
-            background-color: rgba(0, 255, 136, 0.2);
-            border-color: #00ff88;
+            background-color: #1a3a1a;
+            border-left-color: #00ff00;
         }
 
-        /* Dice Elements */
+        /* Column number labels */
+        .column::after {
+            content: attr(data-column-index);
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #404040;
+            font-size: 11px;
+        }
+
+        /* Dice Elements - ASCII style */
         .die {
             position: absolute;
             width: 40px;
             height: 40px;
             pointer-events: none;
             z-index: 10;
+            font-family: 'Courier New', monospace;
         }
 
         .die-inner {
@@ -170,251 +164,150 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
-            border-radius: 6px;
-            border: 2px solid rgba(0, 0, 0, 0.3);
+            font-size: 28px;
+            border: 1px solid #303030;
+            background: #0a0a0a;
             backface-visibility: hidden;
         }
 
         /* Bottom UI - Level Selector */
         #level-selector {
             position: absolute;
-            bottom: 20px;
+            bottom: 40px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 10px;
+            gap: 5px;
             z-index: 100;
+            font-size: 12px;
         }
 
         .level-btn {
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #00ff88;
-            color: #00ff88;
-            padding: 10px 20px;
-            border-radius: 8px;
+            background: #0a0a0a;
+            border: 1px solid #404040;
+            color: #808080;
+            padding: 5px 10px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+            transition: all 0.1s;
         }
 
         .level-btn:hover {
-            background: rgba(0, 255, 136, 0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+            background: #151515;
+            color: #c0c0c0;
         }
 
         .level-btn.active {
-            background: #00ff88;
-            color: #000;
+            background: #1a1a1a;
+            color: #00ff00;
+            border-color: #00ff00;
         }
 
-        /* Dice Stack (Lobby) */
-        #dice-stack {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: none;
-            flex-wrap: wrap;
-            gap: 15px;
-            max-width: 400px;
-            justify-content: center;
-            z-index: 50;
-        }
-
-        .dice-stack-item {
-            width: 60px;
-            height: 60px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 3px solid #00ff88;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-        }
-
-        .dice-stack-item:hover {
-            transform: scale(1.1) translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 255, 136, 0.5);
-        }
-
-        .dice-stack-item .count {
-            position: absolute;
-            bottom: -8px;
-            right: -8px;
-            background: #ff0055;
-            color: white;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        /* Action Buttons */
+        /* Action Buttons - ASCII style */
         #action-panel {
             position: absolute;
-            top: 120px;
-            left: 10px;
+            top: 400px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 100;
+            text-align: center;
         }
 
         .action-btn {
-            background: rgba(0, 0, 0, 0.85);
-            border: 2px solid #ff00aa;
-            color: #ff00aa;
-            padding: 12px 20px;
-            border-radius: 8px;
+            background: #0a0a0a;
+            border: 1px solid #404040;
+            color: #808080;
+            padding: 8px 15px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            display: block;
-            width: 200px;
-            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 5px;
+            transition: all 0.1s;
         }
 
         .action-btn:hover:not(:disabled) {
-            background: rgba(255, 0, 170, 0.2);
-            transform: translateX(5px);
+            background: #151515;
+            color: #c0c0c0;
+            border-color: #808080;
         }
 
         .action-btn:disabled {
-            opacity: 0.4;
+            opacity: 0.3;
             cursor: not-allowed;
         }
 
-        /* Pegs (visual) */
+        /* Pegs - ASCII characters */
         .peg {
             position: absolute;
             pointer-events: none;
             z-index: 5;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #303030;
         }
 
-        .peg.circle {
-            background: #4a9eff;
-            border-radius: 50%;
-            box-shadow: 0 0 10px rgba(74, 158, 255, 0.5);
-        }
-
-        .peg.square {
-            background: #ff4a4a;
-            box-shadow: 0 0 10px rgba(255, 74, 74, 0.5);
-        }
-
-        .peg.diamond {
-            background: #4affe8;
-            transform: rotate(45deg);
-            box-shadow: 0 0 10px rgba(74, 255, 232, 0.5);
-        }
-
-        /* Walls (visual) */
-        .wall {
-            position: absolute;
-            pointer-events: none;
-            z-index: 4;
-            opacity: 0.6;
-        }
-
-        /* Debug Toggle */
-        #debug-toggle {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.7);
-            border: 1px solid #666;
-            color: #fff;
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 5px;
-            font-size: 12px;
-        }
-
-        /* Notifications */
+        /* Notifications - ASCII style */
         #notification {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.95);
-            border: 3px solid #00ff88;
-            color: #00ff88;
-            padding: 30px 60px;
-            border-radius: 15px;
-            font-size: 36px;
-            font-weight: bold;
+            background: #0a0a0a;
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            padding: 20px 40px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
             z-index: 1000;
             display: none;
-            box-shadow: 0 0 50px rgba(0, 255, 136, 0.6);
-            animation: pulse 0.5s ease-in-out;
+            text-align: center;
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(1.1); }
+        #notification::before {
+            content: "╔════════════════════╗";
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #notification::after {
+            content: "╚════════════════════╝";
+            display: block;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <!-- Physics Canvas -->
-        <canvas id="physics-canvas"></canvas>
+        <!-- ASCII Header -->
+        <pre id="ascii-header">
+╔═══════════════════════════════════════════════════════════════════════╗
+║                          Z O M B S W A P                              ║
+║                      Zombie Mall Dice Survival                        ║
+╚═══════════════════════════════════════════════════════════════════════╝
+        </pre>
 
-        <!-- Game Board -->
-        <div id="game-board">
-            <!-- Pegs and walls will be added here dynamically -->
-        </div>
-
-        <!-- Top UI -->
-        <div id="ui-top">
-            <!-- Resources Panel -->
-            <div class="ui-panel">
-                <h3>Resources</h3>
-                <div class="resource-item">
-                    <span class="resource-label">🏆 Score</span>
-                    <span class="resource-value" id="score-value">0</span>
-                </div>
-                <div class="resource-item">
-                    <span class="resource-label">🧟 Zombies</span>
-                    <span class="resource-value" id="zombie-value">5</span>
-                </div>
-                <div class="resource-item">
-                    <span class="resource-label">👥 Humans</span>
-                    <span class="resource-value" id="human-value">10</span>
-                </div>
-                <div class="resource-item">
-                    <span class="resource-label">👶 Babies</span>
-                    <span class="resource-value" id="baby-value">3</span>
-                </div>
-                <div class="resource-item">
-                    <span class="resource-label">🏠 Shelters</span>
-                    <span class="resource-value" id="shelter-value">0</span>
-                </div>
-            </div>
-
-            <!-- Dice Pool Panel -->
-            <div class="ui-panel" id="dice-pool-panel">
-                <h3>Dice Pool</h3>
+        <!-- UI Container -->
+        <div id="ui-container">
+            <div class="ascii-box" style="width: 300px;">
+                <div class="ascii-box-title">┌─ RESOURCES ─┐</div>
+                <div class="resource-line">Score: <span id="score-value">0</span></div>
+                <div class="resource-line">Zombies: <span id="zombie-value">5</span></div>
+                <div class="resource-line">Humans: <span id="human-value">10</span></div>
+                <div class="resource-line">Babies: <span id="baby-value">3</span></div>
+                <div class="resource-line">Shelters: <span id="shelter-value">0</span></div>
+                <div class="ascii-box-title" style="margin-top: 10px;">┌─ DICE POOL ─┐</div>
                 <div id="dice-pool-list">
                     <!-- Dynamically populated -->
                 </div>
             </div>
         </div>
 
-        <!-- Action Panel -->
-        <div id="action-panel">
-            <button class="action-btn" id="make-baby-btn">👶 Make Baby (2 👥)</button>
-            <button class="action-btn" id="drop-dice-btn">🎲 Drop Dice</button>
+        <!-- Physics Canvas (hidden) -->
+        <canvas id="physics-canvas"></canvas>
+
+        <!-- Game Board -->
+        <div id="game-board">
+            <!-- Pegs and dice will be added here dynamically -->
         </div>
 
         <!-- Column Container -->
@@ -422,24 +315,22 @@
             <!-- 7 columns -->
         </div>
 
-        <!-- Dice Stack (visible in lobby) -->
-        <div id="dice-stack">
-            <!-- Dynamically populated -->
+        <!-- Action Panel -->
+        <div id="action-panel">
+            <button class="action-btn" id="make-baby-btn">[ Make Baby ]</button>
+            <button class="action-btn" id="drop-dice-btn">[ Drop Dice ]</button>
         </div>
 
         <!-- Level Selector -->
         <div id="level-selector">
-            <button class="level-btn active" data-level="lobby">🏢 Lobby</button>
-            <button class="level-btn" data-level="food">🍕 Food Court</button>
-            <button class="level-btn" data-level="arcade">🎮 Arcade</button>
-            <button class="level-btn" data-level="clothing">👗 Clothing</button>
+            <button class="level-btn active" data-level="lobby">[ LOBBY ]</button>
+            <button class="level-btn" data-level="food">[ FOOD ]</button>
+            <button class="level-btn" data-level="arcade">[ ARCADE ]</button>
+            <button class="level-btn" data-level="clothing">[ CLOTHING ]</button>
         </div>
 
         <!-- Notification -->
-        <div id="notification"></div>
-
-        <!-- Debug Toggle -->
-        <button id="debug-toggle">Toggle Debug Physics</button>
+        <div id="notification"><div id="notification-text"></div></div>
     </div>
 
     <script>
@@ -716,16 +607,27 @@
             const face = dice.element.querySelector('.die-face');
             const emoji = dice.emoji;
 
+            // ASCII-style - minimal color coding
             if (emoji === '🧟‍♂️' || emoji === '🧟‍♀️' || emoji === '💀') {
-                face.style.backgroundColor = '#a8e890';
+                face.style.backgroundColor = '#0a0a0a';
+                face.style.borderColor = '#00ff00';
+                face.style.color = '#00ff00';
             } else if (emoji === '👨' || emoji === '👩') {
-                face.style.backgroundColor = '#ffedd8';
+                face.style.backgroundColor = '#0a0a0a';
+                face.style.borderColor = '#808080';
+                face.style.color = '#ffffff';
             } else if (emoji === '🔥') {
-                face.style.backgroundColor = '#ff9999';
+                face.style.backgroundColor = '#0a0a0a';
+                face.style.borderColor = '#ff0000';
+                face.style.color = '#ff0000';
             } else if (emoji === '💰' || emoji === '💳') {
-                face.style.backgroundColor = '#ffd700';
+                face.style.backgroundColor = '#0a0a0a';
+                face.style.borderColor = '#ffff00';
+                face.style.color = '#ffff00';
             } else {
-                face.style.backgroundColor = '#f0f0f0';
+                face.style.backgroundColor = '#0a0a0a';
+                face.style.borderColor = '#404040';
+                face.style.color = '#c0c0c0';
             }
         }
 
@@ -991,19 +893,16 @@
             poolList.innerHTML = '';
 
             const poolLabels = {
-                mall: '🛍️ Mall',
-                food: '🍕 Food',
-                arcade: '🎮 Arcade',
-                clothing: '👗 Clothing'
+                mall: 'Mall',
+                food: 'Food',
+                arcade: 'Arcade',
+                clothing: 'Cloth'
             };
 
             for (const [key, label] of Object.entries(poolLabels)) {
                 const item = document.createElement('div');
-                item.className = 'dice-pool-item';
-                item.innerHTML = `
-                    <span>${label}</span>
-                    <span style="color: #00ff88; font-weight: bold;">${gameState.dicePool[key]}</span>
-                `;
+                item.className = 'dice-pool-line';
+                item.innerHTML = `${label.padEnd(8, '.')} ${gameState.dicePool[key]}`;
                 poolList.appendChild(item);
             }
         }
@@ -1166,7 +1065,16 @@
         function createPegs(config) {
             const containerRect = document.getElementById('column-container').getBoundingClientRect();
             const columnWidth = containerRect.width / 7;
-            const pegArea = { top: 100, bottom: containerRect.top };
+            const pegArea = { top: 150, bottom: containerRect.top };
+
+            // ASCII characters for different peg types
+            const pegChars = {
+                circle: '●',
+                square: '■',
+                diamond: '◆'
+            };
+
+            const pegChar = pegChars[config.shape] || '●';
 
             // Create pegs
             for (let row = 0; row < 8; row++) {
@@ -1175,7 +1083,7 @@
                     if (Math.random() > 0.3) continue;
 
                     const x = containerRect.left + col * columnWidth + columnWidth / 2 + (Math.random() - 0.5) * 40;
-                    const y = pegArea.top + row * 60 + (Math.random() - 0.5) * 20;
+                    const y = pegArea.top + row * 50 + (Math.random() - 0.5) * 20;
 
                     // Add physics peg
                     const pegBody = Bodies.circle(x, y, config.size / 2, {
@@ -1186,14 +1094,12 @@
                     });
                     World.add(engine.world, pegBody);
 
-                    // Add visual peg
+                    // Add visual peg (ASCII character)
                     const pegElement = document.createElement('div');
-                    pegElement.className = `peg ${config.shape}`;
-                    pegElement.style.left = (x - config.size / 2) + 'px';
-                    pegElement.style.top = (y - config.size / 2) + 'px';
-                    pegElement.style.width = config.size + 'px';
-                    pegElement.style.height = config.size + 'px';
-                    pegElement.style.background = config.color;
+                    pegElement.className = 'peg';
+                    pegElement.textContent = pegChar;
+                    pegElement.style.left = (x - 7) + 'px';
+                    pegElement.style.top = (y - 10) + 'px';
                     document.getElementById('game-board').appendChild(pegElement);
                 }
             }
@@ -1215,25 +1121,14 @@
         // ========================================
         function showNotification(message) {
             const notif = document.getElementById('notification');
-            notif.textContent = message;
+            const notifText = document.getElementById('notification-text');
+            notifText.textContent = message;
             notif.style.display = 'block';
 
             setTimeout(() => {
                 notif.style.display = 'none';
             }, 1500);
         }
-
-        // ========================================
-        // DEBUG
-        // ========================================
-        document.getElementById('debug-toggle').addEventListener('click', () => {
-            const canvas = document.getElementById('physics-canvas');
-            if (canvas.style.opacity === '0.3') {
-                canvas.style.opacity = '1';
-            } else {
-                canvas.style.opacity = '0.3';
-            }
-        });
 
         // ========================================
         // EVENT LISTENERS
