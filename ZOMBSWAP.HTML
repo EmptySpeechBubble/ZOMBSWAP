@@ -1,1 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZOMBSWAP - Zombie Mall Dice</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+            color: #eee;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Canvas for physics */
+        #physics-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            opacity: 0.3; /* Semi-transparent for debugging */
+        }
+
+        /* Main game area */
+        #game-board {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+        }
+
+        /* UI Panels */
+        #ui-top {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .ui-panel {
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 200px;
+            pointer-events: auto;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .ui-panel h3 {
+            color: #00ff88;
+            margin-bottom: 10px;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .resource-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 8px 0;
+            font-size: 18px;
+        }
+
+        .resource-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .resource-value {
+            font-weight: bold;
+            color: #00ff88;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        /* Dice Pool Display */
+        #dice-pool-panel {
+            max-width: 300px;
+        }
+
+        .dice-pool-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .dice-pool-emoji {
+            display: flex;
+            gap: 3px;
+        }
+
+        /* Column Layout */
+        #column-container {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 700px;
+            height: 400px;
+            display: flex;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .column {
+            flex: 1;
+            border-left: 2px dashed rgba(255, 255, 255, 0.2);
+            border-right: 2px dashed rgba(255, 255, 255, 0.2);
+            position: relative;
+            pointer-events: auto;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .column:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .column.selected {
+            background-color: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+
+        /* Dice Elements */
+        .die {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .die-inner {
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.1s;
+        }
+
+        .die-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            border-radius: 6px;
+            border: 2px solid rgba(0, 0, 0, 0.3);
+            backface-visibility: hidden;
+        }
+
+        /* Bottom UI - Level Selector */
+        #level-selector {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .level-btn {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .level-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+        }
+
+        .level-btn.active {
+            background: #00ff88;
+            color: #000;
+        }
+
+        /* Dice Stack (Lobby) */
+        #dice-stack {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            flex-wrap: wrap;
+            gap: 15px;
+            max-width: 400px;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .dice-stack-item {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #00ff88;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .dice-stack-item:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 255, 136, 0.5);
+        }
+
+        .dice-stack-item .count {
+            position: absolute;
+            bottom: -8px;
+            right: -8px;
+            background: #ff0055;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Action Buttons */
+        #action-panel {
+            position: absolute;
+            top: 120px;
+            left: 10px;
+            z-index: 100;
+        }
+
+        .action-btn {
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid #ff00aa;
+            color: #ff00aa;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+            width: 200px;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            background: rgba(255, 0, 170, 0.2);
+            transform: translateX(5px);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Pegs (visual) */
+        .peg {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .peg.circle {
+            background: #4a9eff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(74, 158, 255, 0.5);
+        }
+
+        .peg.square {
+            background: #ff4a4a;
+            box-shadow: 0 0 10px rgba(255, 74, 74, 0.5);
+        }
+
+        .peg.diamond {
+            background: #4affe8;
+            transform: rotate(45deg);
+            box-shadow: 0 0 10px rgba(74, 255, 232, 0.5);
+        }
+
+        /* Walls (visual) */
+        .wall {
+            position: absolute;
+            pointer-events: none;
+            z-index: 4;
+            opacity: 0.6;
+        }
+
+        /* Debug Toggle */
+        #debug-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #666;
+            color: #fff;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+
+        /* Notifications */
+        #notification {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 3px solid #00ff88;
+            color: #00ff88;
+            padding: 30px 60px;
+            border-radius: 15px;
+            font-size: 36px;
+            font-weight: bold;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.6);
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Physics Canvas -->
+        <canvas id="physics-canvas"></canvas>
+
+        <!-- Game Board -->
+        <div id="game-board">
+            <!-- Pegs and walls will be added here dynamically -->
+        </div>
+
+        <!-- Top UI -->
+        <div id="ui-top">
+            <!-- Resources Panel -->
+            <div class="ui-panel">
+                <h3>Resources</h3>
+                <div class="resource-item">
+                    <span class="resource-label">🏆 Score</span>
+                    <span class="resource-value" id="score-value">0</span>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-label">🧟 Zombies</span>
+                    <span class="resource-value" id="zombie-value">5</span>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-label">👥 Humans</span>
+                    <span class="resource-value" id="human-value">10</span>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-label">👶 Babies</span>
+                    <span class="resource-value" id="baby-value">3</span>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-label">🏠 Shelters</span>
+                    <span class="resource-value" id="shelter-value">0</span>
+                </div>
+            </div>
+
+            <!-- Dice Pool Panel -->
+            <div class="ui-panel" id="dice-pool-panel">
+                <h3>Dice Pool</h3>
+                <div id="dice-pool-list">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Panel -->
+        <div id="action-panel">
+            <button class="action-btn" id="make-baby-btn">👶 Make Baby (2 👥)</button>
+            <button class="action-btn" id="drop-dice-btn">🎲 Drop Dice</button>
+        </div>
+
+        <!-- Column Container -->
+        <div id="column-container">
+            <!-- 7 columns -->
+        </div>
+
+        <!-- Dice Stack (visible in lobby) -->
+        <div id="dice-stack">
+            <!-- Dynamically populated -->
+        </div>
+
+        <!-- Level Selector -->
+        <div id="level-selector">
+            <button class="level-btn active" data-level="lobby">🏢 Lobby</button>
+            <button class="level-btn" data-level="food">🍕 Food Court</button>
+            <button class="level-btn" data-level="arcade">🎮 Arcade</button>
+            <button class="level-btn" data-level="clothing">👗 Clothing</button>
+        </div>
+
+        <!-- Notification -->
+        <div id="notification"></div>
+
+        <!-- Debug Toggle -->
+        <button id="debug-toggle">Toggle Debug Physics</button>
+    </div>
+
+    <script>
+        // ========================================
+        // GAME STATE
+        // ========================================
+        const gameState = {
+            score: 0,
+            zombies: 5,
+            humans: 10,
+            babies: 3,
+            shelters: 0,
+
+            // Dice Pool
+            dicePool: {
+                mall: 20,
+                food: 15,
+                arcade: 15,
+                clothing: 15
+            },
+
+            // Column Management
+            columnStacks: [[], [], [], [], [], [], []],
+            selectedColumn: null,
+
+            // Level State
+            currentLevel: 'lobby',
+            levelColumnStates: {},
+            zombiesPerStore: {
+                food: 3,
+                arcade: 3,
+                clothing: 3
+            },
+
+            // Baby-making
+            parentsDice: [],
+
+            // Physics
+            diceCounter: 0
+        };
+
+        // ========================================
+        // DICE CONFIGURATIONS
+        // ========================================
+        const DICE_SETS = {
+            lobby: {
+                emojis: ['🛍️', '🛒', '💰', '💳', '👨', '👩'],
+                poolKey: 'mall'
+            },
+            food: {
+                emojis: ['🍕', '🍔', '🍟', '🥤', '🧟‍♂️', '👨'],
+                poolKey: 'food'
+            },
+            arcade: {
+                emojis: ['🎮', '🎰', '🎯', '🎪', '🧟‍♀️', '👩'],
+                poolKey: 'arcade'
+            },
+            clothing: {
+                emojis: ['👗', '👚', '👖', '👠', '🧟‍♂️', '👨'],
+                poolKey: 'clothing'
+            }
+        };
+
+        // ========================================
+        // MATTER.JS SETUP
+        // ========================================
+        const { Engine, Render, World, Bodies, Body, Events } = Matter;
+
+        let engine, render, ground, leftWall, rightWall;
+        let activeDice = [];
+
+        function initPhysics() {
+            // Create engine
+            engine = Engine.create();
+            engine.world.gravity.y = 0.5;
+
+            // Create renderer
+            const canvas = document.getElementById('physics-canvas');
+            render = Render.create({
+                canvas: canvas,
+                engine: engine,
+                options: {
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    wireframes: false,
+                    background: 'transparent'
+                }
+            });
+
+            // Create boundaries
+            ground = Bodies.rectangle(
+                window.innerWidth / 2,
+                window.innerHeight + 25,
+                window.innerWidth,
+                50,
+                { isStatic: true, render: { fillStyle: '#00ff88' } }
+            );
+
+            leftWall = Bodies.rectangle(
+                -25,
+                window.innerHeight / 2,
+                50,
+                window.innerHeight,
+                { isStatic: true, render: { fillStyle: '#00ff88' } }
+            );
+
+            rightWall = Bodies.rectangle(
+                window.innerWidth + 25,
+                window.innerHeight / 2,
+                50,
+                window.innerHeight,
+                { isStatic: true, render: { fillStyle: '#00ff88' } }
+            );
+
+            World.add(engine.world, [ground, leftWall, rightWall]);
+
+            // Run engine and renderer
+            Engine.run(engine);
+            Render.run(render);
+
+            // Update dice positions based on physics
+            Events.on(engine, 'afterUpdate', updateDicePositions);
+        }
+
+        // ========================================
+        // COLUMN SETUP
+        // ========================================
+        function initColumns() {
+            const container = document.getElementById('column-container');
+            container.innerHTML = '';
+
+            for (let i = 0; i < 7; i++) {
+                const column = document.createElement('div');
+                column.className = 'column';
+                column.dataset.columnIndex = i;
+
+                column.addEventListener('click', () => handleColumnClick(i));
+
+                container.appendChild(column);
+            }
+        }
+
+        function handleColumnClick(columnIndex) {
+            if (gameState.selectedColumn === null) {
+                // Select this column
+                gameState.selectedColumn = columnIndex;
+                updateColumnVisuals();
+            } else if (gameState.selectedColumn === columnIndex) {
+                // Deselect
+                gameState.selectedColumn = null;
+                updateColumnVisuals();
+            } else if (Math.abs(gameState.selectedColumn - columnIndex) === 1) {
+                // Swap adjacent columns
+                swapColumns(gameState.selectedColumn, columnIndex);
+                gameState.selectedColumn = null;
+                updateColumnVisuals();
+            } else {
+                // Select new column
+                gameState.selectedColumn = columnIndex;
+                updateColumnVisuals();
+            }
+        }
+
+        function swapColumns(col1, col2) {
+            if (gameState.columnStacks[col1].length === 0 || gameState.columnStacks[col2].length === 0) {
+                return; // Can't swap if column is empty
+            }
+
+            // Get top dice from each column
+            const dice1 = gameState.columnStacks[col1][gameState.columnStacks[col1].length - 1];
+            const dice2 = gameState.columnStacks[col2][gameState.columnStacks[col2].length - 1];
+
+            // Swap their emojis
+            const tempEmoji = dice1.emoji;
+            dice1.emoji = dice2.emoji;
+            dice2.emoji = dice1.emoji;
+
+            // Update visual
+            dice1.element.querySelector('.die-face').textContent = dice1.emoji;
+            dice2.element.querySelector('.die-face').textContent = dice2.emoji;
+
+            // Update face colors
+            updateDieFaceColor(dice1);
+            updateDieFaceColor(dice2);
+
+            // Check for matches
+            setTimeout(() => checkAllMatches(), 300);
+        }
+
+        function updateColumnVisuals() {
+            const columns = document.querySelectorAll('.column');
+            columns.forEach((col, index) => {
+                if (index === gameState.selectedColumn) {
+                    col.classList.add('selected');
+                } else {
+                    col.classList.remove('selected');
+                }
+            });
+        }
+
+        // ========================================
+        // DICE CREATION
+        // ========================================
+        function createDice(x, y, diceSet) {
+            const emojis = diceSet.emojis;
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+
+            // Create physics body
+            const body = Bodies.rectangle(x, y, 40, 40, {
+                restitution: 0.6,
+                friction: 0.01,
+                frictionAir: 0.01
+            });
+
+            World.add(engine.world, body);
+
+            // Create DOM element
+            const dieElement = document.createElement('div');
+            dieElement.className = 'die';
+            dieElement.style.left = x + 'px';
+            dieElement.style.top = y + 'px';
+
+            const dieInner = document.createElement('div');
+            dieInner.className = 'die-inner';
+
+            const dieFace = document.createElement('div');
+            dieFace.className = 'die-face';
+            dieFace.textContent = emoji;
+
+            dieInner.appendChild(dieFace);
+            dieElement.appendChild(dieInner);
+            document.getElementById('game-board').appendChild(dieElement);
+
+            const diceObject = {
+                id: gameState.diceCounter++,
+                body: body,
+                element: dieElement,
+                emoji: emoji,
+                settled: false,
+                columnIndex: null,
+                tumbleInterval: null
+            };
+
+            activeDice.push(diceObject);
+
+            // Start tumbling animation
+            startTumbling(diceObject);
+
+            return diceObject;
+        }
+
+        function startTumbling(dice) {
+            const diceSet = DICE_SETS[gameState.currentLevel];
+            const emojis = diceSet.emojis;
+
+            dice.tumbleInterval = setInterval(() => {
+                if (!dice.settled) {
+                    // Random emoji while falling
+                    dice.emoji = emojis[Math.floor(Math.random() * emojis.length)];
+                    dice.element.querySelector('.die-face').textContent = dice.emoji;
+                    updateDieFaceColor(dice);
+
+                    // Random rotation
+                    const rx = Math.random() * 360;
+                    const ry = Math.random() * 360;
+                    const rz = Math.random() * 360;
+                    dice.element.querySelector('.die-inner').style.transform =
+                        `rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`;
+                }
+            }, 150);
+        }
+
+        function updateDieFaceColor(dice) {
+            const face = dice.element.querySelector('.die-face');
+            const emoji = dice.emoji;
+
+            if (emoji === '🧟‍♂️' || emoji === '🧟‍♀️' || emoji === '💀') {
+                face.style.backgroundColor = '#a8e890';
+            } else if (emoji === '👨' || emoji === '👩') {
+                face.style.backgroundColor = '#ffedd8';
+            } else if (emoji === '🔥') {
+                face.style.backgroundColor = '#ff9999';
+            } else if (emoji === '💰' || emoji === '💳') {
+                face.style.backgroundColor = '#ffd700';
+            } else {
+                face.style.backgroundColor = '#f0f0f0';
+            }
+        }
+
+        // ========================================
+        // PHYSICS UPDATE
+        // ========================================
+        function updateDicePositions() {
+            activeDice.forEach(dice => {
+                if (!dice.settled) {
+                    // Update position
+                    dice.element.style.left = (dice.body.position.x - 20) + 'px';
+                    dice.element.style.top = (dice.body.position.y - 20) + 'px';
+
+                    // Check if settled
+                    if (dice.body.position.y > window.innerHeight - 450 &&
+                        Math.abs(dice.body.velocity.y) < 0.1) {
+                        settleDice(dice);
+                    }
+                }
+            });
+        }
+
+        function settleDice(dice) {
+            dice.settled = true;
+            clearInterval(dice.tumbleInterval);
+
+            // Remove physics body
+            World.remove(engine.world, dice.body);
+
+            // Determine column
+            const containerRect = document.getElementById('column-container').getBoundingClientRect();
+            const diceX = dice.body.position.x;
+            const columnWidth = containerRect.width / 7;
+            const relativeX = diceX - (window.innerWidth - containerRect.width) / 2;
+            const columnIndex = Math.floor(relativeX / columnWidth);
+
+            if (columnIndex >= 0 && columnIndex < 7) {
+                addDiceToColumn(dice, columnIndex);
+            } else {
+                // Out of bounds, remove
+                dice.element.remove();
+                activeDice = activeDice.filter(d => d.id !== dice.id);
+            }
+        }
+
+        function addDiceToColumn(dice, columnIndex) {
+            dice.columnIndex = columnIndex;
+            gameState.columnStacks[columnIndex].push(dice);
+
+            // Position in column
+            const stackHeight = gameState.columnStacks[columnIndex].length;
+            const containerRect = document.getElementById('column-container').getBoundingClientRect();
+            const columnWidth = containerRect.width / 7;
+
+            const newX = containerRect.left + (columnIndex * columnWidth) + (columnWidth / 2);
+            const newY = containerRect.bottom - (stackHeight * 45) - 20;
+
+            dice.element.style.left = (newX - 20) + 'px';
+            dice.element.style.top = (newY - 20) + 'px';
+            dice.element.style.transition = 'all 0.3s ease';
+
+            // Reset rotation
+            dice.element.querySelector('.die-inner').style.transform = 'rotateX(0) rotateY(0) rotateZ(0)';
+
+            // Check for matches after settling
+            setTimeout(() => checkAllMatches(), 500);
+        }
+
+        // ========================================
+        // MATCH DETECTION
+        // ========================================
+        function checkAllMatches() {
+            let matchFound = false;
+
+            // Check vertical matches
+            for (let col = 0; col < 7; col++) {
+                if (checkVerticalMatch(col)) {
+                    matchFound = true;
+                }
+            }
+
+            // Check horizontal matches
+            if (checkHorizontalMatches()) {
+                matchFound = true;
+            }
+
+            if (matchFound) {
+                // Re-check after matches resolve
+                setTimeout(() => checkAllMatches(), 800);
+            }
+        }
+
+        function checkVerticalMatch(columnIndex) {
+            const stack = gameState.columnStacks[columnIndex];
+            if (stack.length < 2) return false;
+
+            for (let i = 0; i < stack.length - 1; i++) {
+                const dice1 = stack[i];
+                const dice2 = stack[i + 1];
+
+                if (dice1.emoji === dice2.emoji) {
+                    // Match found!
+                    processMatch([dice1, dice2], false);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        function checkHorizontalMatches() {
+            const topDice = [];
+
+            for (let col = 0; col < 7; col++) {
+                const stack = gameState.columnStacks[col];
+                if (stack.length > 0) {
+                    topDice.push({ dice: stack[stack.length - 1], col: col });
+                } else {
+                    topDice.push(null);
+                }
+            }
+
+            // Find consecutive matches
+            for (let i = 0; i < topDice.length - 1; i++) {
+                if (!topDice[i]) continue;
+
+                const matches = [topDice[i]];
+
+                for (let j = i + 1; j < topDice.length; j++) {
+                    if (topDice[j] && topDice[j].dice.emoji === topDice[i].dice.emoji) {
+                        matches.push(topDice[j]);
+                    } else {
+                        break;
+                    }
+                }
+
+                if (matches.length >= 2) {
+                    const isSuper = matches.length >= 3;
+                    processMatch(matches.map(m => m.dice), isSuper);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // ========================================
+        // MATCH PROCESSING
+        // ========================================
+        function processMatch(diceArray, isSuper) {
+            const emoji = diceArray[0].emoji;
+            const matchCount = diceArray.length;
+
+            // Remove matched dice
+            diceArray.forEach(dice => {
+                removeDiceFromColumn(dice);
+            });
+
+            // Apply effects based on emoji
+            applyMatchEffect(emoji, matchCount, isSuper);
+
+            // Visual feedback
+            showNotification(`${isSuper ? 'SUPER ' : ''}MATCH! ${emoji} x${matchCount}`);
+        }
+
+        function removeDiceFromColumn(dice) {
+            if (dice.columnIndex !== null) {
+                const stack = gameState.columnStacks[dice.columnIndex];
+                const index = stack.indexOf(dice);
+                if (index > -1) {
+                    stack.splice(index, 1);
+                }
+
+                // Re-position remaining dice
+                repositionColumn(dice.columnIndex);
+            }
+
+            // Remove from active dice
+            activeDice = activeDice.filter(d => d.id !== dice.id);
+
+            // Animate out
+            dice.element.style.transition = 'all 0.3s ease';
+            dice.element.style.opacity = '0';
+            dice.element.style.transform = 'scale(1.5)';
+            setTimeout(() => dice.element.remove(), 300);
+        }
+
+        function repositionColumn(columnIndex) {
+            const stack = gameState.columnStacks[columnIndex];
+            const containerRect = document.getElementById('column-container').getBoundingClientRect();
+            const columnWidth = containerRect.width / 7;
+
+            stack.forEach((dice, index) => {
+                const stackHeight = index + 1;
+                const newX = containerRect.left + (columnIndex * columnWidth) + (columnWidth / 2);
+                const newY = containerRect.bottom - (stackHeight * 45) - 20;
+
+                dice.element.style.left = (newX - 20) + 'px';
+                dice.element.style.top = (newY - 20) + 'px';
+            });
+        }
+
+        // ========================================
+        // MATCH EFFECTS
+        // ========================================
+        function applyMatchEffect(emoji, matchCount, isSuper) {
+            const baseScore = isSuper ? 30 : 10;
+
+            if (emoji === '👨' || emoji === '👩') {
+                // Human match
+                if (gameState.currentLevel === 'lobby') {
+                    gameState.humans += matchCount;
+                    gameState.score += 5 * matchCount;
+                } else {
+                    // Trigger search in stores
+                    gameState.score += 5 * matchCount;
+                }
+            } else if (emoji === '🧟‍♂️' || emoji === '🧟‍♀️') {
+                // Zombie match
+                gameState.zombies = Math.max(0, gameState.zombies - matchCount);
+                if (gameState.currentLevel !== 'lobby') {
+                    gameState.zombiesPerStore[gameState.currentLevel] =
+                        Math.max(0, gameState.zombiesPerStore[gameState.currentLevel] - matchCount);
+                }
+                gameState.score += 15 * matchCount;
+            } else if (emoji === '💰' || emoji === '💳') {
+                // Money match
+                const diceGained = isSuper ? 8 : 3;
+                const poolKey = DICE_SETS[gameState.currentLevel].poolKey;
+                gameState.dicePool[poolKey] += diceGained;
+                gameState.score += 25 * matchCount;
+            } else if (emoji === '🔥') {
+                // Fire match
+                gameState.score += 10 * matchCount;
+                // TODO: Fire spread mechanic
+            } else {
+                // Generic match
+                const diceGained = isSuper ? 5 : 1;
+                const poolKey = DICE_SETS[gameState.currentLevel].poolKey;
+                gameState.dicePool[poolKey] += diceGained;
+                gameState.score += baseScore * matchCount;
+            }
+
+            updateUI();
+        }
+
+        // ========================================
+        // UI UPDATES
+        // ========================================
+        function updateUI() {
+            document.getElementById('score-value').textContent = gameState.score;
+            document.getElementById('zombie-value').textContent = gameState.zombies;
+            document.getElementById('human-value').textContent = gameState.humans;
+            document.getElementById('baby-value').textContent = gameState.babies;
+            document.getElementById('shelter-value').textContent = gameState.shelters;
+
+            updateDicePoolDisplay();
+            updateActionButtons();
+        }
+
+        function updateDicePoolDisplay() {
+            const poolList = document.getElementById('dice-pool-list');
+            poolList.innerHTML = '';
+
+            const poolLabels = {
+                mall: '🛍️ Mall',
+                food: '🍕 Food',
+                arcade: '🎮 Arcade',
+                clothing: '👗 Clothing'
+            };
+
+            for (const [key, label] of Object.entries(poolLabels)) {
+                const item = document.createElement('div');
+                item.className = 'dice-pool-item';
+                item.innerHTML = `
+                    <span>${label}</span>
+                    <span style="color: #00ff88; font-weight: bold;">${gameState.dicePool[key]}</span>
+                `;
+                poolList.appendChild(item);
+            }
+        }
+
+        function updateActionButtons() {
+            const makeBabyBtn = document.getElementById('make-baby-btn');
+            const dropDiceBtn = document.getElementById('drop-dice-btn');
+
+            // Make Baby button
+            if (gameState.currentLevel === 'lobby' && gameState.humans >= 2) {
+                makeBabyBtn.disabled = false;
+            } else {
+                makeBabyBtn.disabled = true;
+            }
+
+            // Drop Dice button
+            const poolKey = DICE_SETS[gameState.currentLevel].poolKey;
+            if (gameState.dicePool[poolKey] > 0) {
+                dropDiceBtn.disabled = false;
+            } else {
+                dropDiceBtn.disabled = true;
+            }
+        }
+
+        // ========================================
+        // ACTIONS
+        // ========================================
+        function makeBaby() {
+            if (gameState.humans >= 2 && gameState.currentLevel === 'lobby') {
+                gameState.humans -= 2;
+                gameState.babies += 1;
+
+                showNotification('👶 Baby Created!');
+                updateUI();
+            }
+        }
+
+        function dropDice() {
+            const poolKey = DICE_SETS[gameState.currentLevel].poolKey;
+
+            if (gameState.dicePool[poolKey] > 0) {
+                gameState.dicePool[poolKey]--;
+
+                const x = window.innerWidth / 2 + (Math.random() - 0.5) * 200;
+                const y = 50;
+
+                createDice(x, y, DICE_SETS[gameState.currentLevel]);
+                updateUI();
+            }
+        }
+
+        // ========================================
+        // LEVEL MANAGEMENT
+        // ========================================
+        function switchLevel(levelName) {
+            // Save current level state
+            if (gameState.currentLevel) {
+                saveColumnState(gameState.currentLevel);
+            }
+
+            gameState.currentLevel = levelName;
+
+            // Clear pegs and walls
+            clearLevel();
+
+            // Load new level
+            setupLevel(levelName);
+
+            // Restore level state
+            restoreColumnState(levelName);
+
+            // Update UI
+            updateLevelButtons();
+            updateUI();
+        }
+
+        function saveColumnState(levelName) {
+            gameState.levelColumnStates[levelName] = gameState.columnStacks.map(stack =>
+                stack.map(dice => ({ emoji: dice.emoji }))
+            );
+        }
+
+        function restoreColumnState(levelName) {
+            // Clear columns
+            gameState.columnStacks = [[], [], [], [], [], [], []];
+            activeDice.forEach(dice => dice.element.remove());
+            activeDice = [];
+
+            // Restore saved state
+            if (gameState.levelColumnStates[levelName]) {
+                const savedState = gameState.levelColumnStates[levelName];
+                savedState.forEach((stack, colIndex) => {
+                    stack.forEach(diceData => {
+                        // Create dice element (not physics body)
+                        const diceObject = createRestoredDice(diceData.emoji, colIndex);
+                        gameState.columnStacks[colIndex].push(diceObject);
+                    });
+                });
+
+                // Reposition all columns
+                for (let i = 0; i < 7; i++) {
+                    repositionColumn(i);
+                }
+            }
+        }
+
+        function createRestoredDice(emoji, columnIndex) {
+            const dieElement = document.createElement('div');
+            dieElement.className = 'die';
+
+            const dieInner = document.createElement('div');
+            dieInner.className = 'die-inner';
+
+            const dieFace = document.createElement('div');
+            dieFace.className = 'die-face';
+            dieFace.textContent = emoji;
+
+            dieInner.appendChild(dieFace);
+            dieElement.appendChild(dieInner);
+            document.getElementById('game-board').appendChild(dieElement);
+
+            const diceObject = {
+                id: gameState.diceCounter++,
+                body: null,
+                element: dieElement,
+                emoji: emoji,
+                settled: true,
+                columnIndex: columnIndex,
+                tumbleInterval: null
+            };
+
+            updateDieFaceColor(diceObject);
+            activeDice.push(diceObject);
+
+            return diceObject;
+        }
+
+        function clearLevel() {
+            // Remove all pegs and walls from physics world
+            const pegsAndWalls = document.querySelectorAll('.peg, .wall');
+            pegsAndWalls.forEach(el => el.remove());
+
+            // Clear physics bodies (except boundaries)
+            World.clear(engine.world, false);
+            World.add(engine.world, [ground, leftWall, rightWall]);
+        }
+
+        function setupLevel(levelName) {
+            const pegConfigs = {
+                lobby: { shape: 'circle', color: '#4a9eff', size: 20 },
+                food: { shape: 'square', color: '#ff4a4a', size: 20 },
+                arcade: { shape: 'diamond', color: '#4affe8', size: 20 },
+                clothing: { shape: 'square', color: '#ff88dd', size: 20 }
+            };
+
+            const config = pegConfigs[levelName];
+            createPegs(config);
+        }
+
+        function createPegs(config) {
+            const containerRect = document.getElementById('column-container').getBoundingClientRect();
+            const columnWidth = containerRect.width / 7;
+            const pegArea = { top: 100, bottom: containerRect.top };
+
+            // Create pegs
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 7; col++) {
+                    // Skip center of columns to allow clear paths
+                    if (Math.random() > 0.3) continue;
+
+                    const x = containerRect.left + col * columnWidth + columnWidth / 2 + (Math.random() - 0.5) * 40;
+                    const y = pegArea.top + row * 60 + (Math.random() - 0.5) * 20;
+
+                    // Add physics peg
+                    const pegBody = Bodies.circle(x, y, config.size / 2, {
+                        isStatic: true,
+                        restitution: 0.8,
+                        friction: 0.005,
+                        render: { visible: false }
+                    });
+                    World.add(engine.world, pegBody);
+
+                    // Add visual peg
+                    const pegElement = document.createElement('div');
+                    pegElement.className = `peg ${config.shape}`;
+                    pegElement.style.left = (x - config.size / 2) + 'px';
+                    pegElement.style.top = (y - config.size / 2) + 'px';
+                    pegElement.style.width = config.size + 'px';
+                    pegElement.style.height = config.size + 'px';
+                    pegElement.style.background = config.color;
+                    document.getElementById('game-board').appendChild(pegElement);
+                }
+            }
+        }
+
+        function updateLevelButtons() {
+            const buttons = document.querySelectorAll('.level-btn');
+            buttons.forEach(btn => {
+                if (btn.dataset.level === gameState.currentLevel) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // ========================================
+        // NOTIFICATIONS
+        // ========================================
+        function showNotification(message) {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.style.display = 'block';
+
+            setTimeout(() => {
+                notif.style.display = 'none';
+            }, 1500);
+        }
+
+        // ========================================
+        // DEBUG
+        // ========================================
+        document.getElementById('debug-toggle').addEventListener('click', () => {
+            const canvas = document.getElementById('physics-canvas');
+            if (canvas.style.opacity === '0.3') {
+                canvas.style.opacity = '1';
+            } else {
+                canvas.style.opacity = '0.3';
+            }
+        });
+
+        // ========================================
+        // EVENT LISTENERS
+        // ========================================
+        document.getElementById('make-baby-btn').addEventListener('click', makeBaby);
+        document.getElementById('drop-dice-btn').addEventListener('click', dropDice);
+
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchLevel(btn.dataset.level);
+            });
+        });
+
+        // ========================================
+        // INITIALIZATION
+        // ========================================
+        function init() {
+            initPhysics();
+            initColumns();
+            setupLevel('lobby');
+            updateUI();
+        }
+
+        // Start the game
+        init();
+    </script>
+</body>
+</html>
