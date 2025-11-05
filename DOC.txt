@@ -1,0 +1,5259 @@
+
+Core Game Systems
+Physics Engine & Dice Mechanics
+
+Uses Matter.js for realistic dice physics
+Dice fall through pegs and land in columns at the bottom
+Dice faces change randomly while falling and settle when they land
+Different dice have themed emojis based on the current location (mall, food, arcade, etc.)
+
+Resource Management
+
+Score: Earned through matches and actions
+Zombies: Enemies to clear from each store
+Humans: Valuable resource used for searching, making babies, and fixing rides
+Babies: Can grow into humans over time if shelters exist
+Shelters: Help babies grow into humans
+Dice Pool: Different types of dice (mall, food, arcade, etc.) available to use
+
+Match-2/Match-3 Puzzle System
+
+Players can select columns and swap adjacent dice to create matches
+Matching 2+ identical dice triggers effects
+Matching 3+ identical dice triggers enhanced "super" effects
+Effects vary based on what's matched (zombies, humans, special items)
+Both vertical (within column) and horizontal (across columns) matches are possible
+
+Level System
+
+Lobby: Central hub with baby-making mechanics
+Food Court: Food-themed dice and mechanics
+Arcade: Game-themed dice and mechanics
+Clothing Store: Fashion-themed dice and mechanics
+Zoo: Animal-themed dice with hunger and escape mechanics
+Theme Park: Ride-themed dice with ticket and maintenance mechanics
+Each level has unique layouts, pegs, walls, and themed dice
+Level state is preserved when switching areas
+
+Advanced Game Mechanics
+Store Clearing
+
+Each store has zombies to eliminate
+When all zombies are removed, the store is considered "cleared"
+Clearing a store provides rewards (bonus dice)
+Parents used for baby-making return after store is cleared
+
+Human & Baby System
+
+Two humans can be combined to create a baby in the lobby
+Babies can grow into humans if shelters exist
+Humans can search stores for items, capture escaped animals, and maintain rides
+
+Zombie Mechanics
+
+Zombies have health bars in stores
+Can be cleared by matching zombie tiles
+Special "boss" zombies (💀) have more health
+
+Special Effects
+
+Fire (🔥) that spreads through the board
+Money items (💰,💳) that give bonus dice
+Various special match effects based on emoji type
+
+Zoo Mechanics
+
+Animal tiles with hunger levels that increase over time
+Animals become aggressive when hungry
+Animals can escape and cause chaos if not managed
+Different animals have different effects:
+
+Tiger/Lion (🐅/🦁): Attack and clear zombies
+Elephant (🐘): Creates shockwaves
+Snake (🐍): Adds poison tiles
+Giraffe (🦒): Shows match hints
+Monkey (🐒): Steals or shuffles tiles
+
+
+
+Theme Park Mechanics
+
+Rides that can break down and need maintenance
+Ticket system for using rides
+Different rides have different effects:
+
+Ferris Wheel (🎡): Shows board overview and potential matches
+Roller Coaster (🎢): Clears a row or column
+Carousel (🎠): Swaps random tiles
+Teacups (☕): Transforms tiles
+
+
+Daily free ticket offers
+
+Interactive Elements
+
+Tile Swapping: Select and swap tiles to create matches
+Dice Placement: Choose dice from pool and drop them through the peg board
+Store Navigation: Move between different areas of the mall
+Special Actions: Make babies, feed animals, fix rides, capture escaped animals
+Resource Management: Decide when to use humans for different actions
+
+Visual Effects & UI
+
+Physics-based dice movement with tumbling animations
+Match effects with visual cues and animations
+Confetti and bonus displays
+Health bars for zombies and hunger indicators for animals
+Debug panel for tracking game events
+Themed UI elements for each store
+
+Notable Complexities
+
+State Preservation: Game state for each level is saved when switching
+Multiple Interlocking Systems: The zoo, theme park, and core matching systems all interact
+Adaptive Difficulty: Things like animal hunger and ride breakdowns create escalating challenges
+Varied Win Conditions: Different stores have different objectives and mechanics
+
+This is a remarkably complex game with multiple interlocking systems. The combination of physics-based dice dropping with match-2/match-3 mechanics and the themed store mechanics creates a unique gameplay experience. The code is well-structured with clear separations between different game systems.
+
+
+
+Zombie Mall Dice - Power-ups & Gameplay Systems
+Core Matching System
+The fundamental gameplay revolves around matching 2+ identical tiles:
+
+Basic Matches (2 tiles): Trigger standard effects
+Super Matches (3+ tiles): Trigger enhanced "super" effects
+Players can swap adjacent dice by selecting one column, then an adjacent column
+
+Match Effects by Emoji
+Human & Zombie Tiles
+EmojiBasic EffectSuper Effect🧟‍♂️/🧟‍♀️Clears 1 zombie, +15 pointsClears multiple zombies (one per tile), +30 points👨/👩In lobby: Adds 1 human<br>In stores: Triggers searchIn lobby: Adds multiple humans<br>In stores: Multiple searches💀Boss zombie: Clears 3 zombies, +50 pointsClears many zombies, massive point bonus
+Special Effect Tiles
+EmojiBasic EffectSuper Effect🔥Creates fire effect that spreadsCreates multiple fires💰/💳Adds 3 dice to pool, +25 pointsAdds more dice, higher score🧺Small bonus (random human/dice/score), +30 pointsMega bonus (+3 humans, +5 dice, -3 zombies, +250 score)
+Zoo Animal Tiles
+EmojiBasic EffectSuper Effect🐅Clears zombies in small area, +20 pointsClears ALL zombies, +50 points🦁Scares one zombie away, +15 pointsScares ALL zombies away, +45 points🐘Creates shockwave, +15 pointsCreates mega shockwave, +40 points🐍Adds poison tile, +10 pointsAdds multiple poison tiles, +30 points🦒Shows match hint, +10 pointsReveals ALL matches, +35 points🐒Steals random tile, +10 pointsShuffles ALL tiles, +35 points
+Theme Park Tiles
+EmojiBasic EffectSuper Effect🎡Shows board view, +10 pointsRotates entire board, +40 points🎢Clears one row/column, +15 pointsClears multiple paths, +35 points🎪Adds special bonus tile, +10 pointsAdds multiple special tiles, +30 points🎠Swaps random tiles, +10 pointsSpins whole board, +35 points🎭Transforms random tile, +10 pointsTransforms multiple tiles, +30 points🎟️Adds tickets, +10 pointsAdds double tickets, +30 points
+Human Management System
+Humans are a critical resource with multiple uses:
+
+Searching: Send a human to search a store for items (adds new tiles to columns)
+
+20% chance for human tiles
+10% chance for money tiles
+Rest are themed to the current store
+
+
+Baby-Making: In the lobby, 2 humans can make 1 baby
+
+Parents temporarily removed from player resources
+Parents return when any store is cleared
+If shelters exist, babies grow into humans after 30 seconds
+
+
+Zookeepers: Required to capture escaped animals
+Mechanics: Required to fix broken rides
+Ticket Operators: Required to purchase tickets at the ticket booth
+
+Zoo Management System
+Animal Mechanics
+
+Animal tiles have hunger levels that increase over time
+Visual hunger bar shows current state (green → orange → red)
+When hunger reaches high levels (8+), animals become aggressive:
+
+Tigers/Lions: Attack nearby humans or zombies
+Elephants: Create shockwaves
+Snakes: Spread poison tiles
+Monkeys: Steal tiles
+
+
+
+Animal Escape System
+
+Random chance for animals to escape
+Escaped animals move around the screen
+Must be clicked to attempt capture (requires a human)
+If not captured, cause chaos:
+
+Tigers/Lions: Attack and injure humans
+Elephants: Create obstacles
+Monkeys: Steal dice from pool
+Giraffes: Block view with visual obstructions
+
+
+
+Feeding System
+
+Uses food dice from your pool
+Resets hunger for all animals
+Prevents aggressive behavior
+
+Theme Park System
+Ride Mechanics
+Four unique rides with special effects:
+
+Ferris Wheel (🎡): Shows overview of board with match hints
+Roller Coaster (🎢): Clears a row or column of tiles
+Carousel (🎠): Swaps random tiles
+Teacups (☕): Transforms random tiles
+
+Maintenance System
+
+Rides gradually lose maintenance over time
+Visual status bar shows condition (green → orange → red)
+Poorly maintained rides have higher breakdown chance
+Broken rides require a human to fix
+
+Ticket System
+
+Required to use rides
+Earn through:
+
+Matching ticket tiles
+Purchasing with humans at ticket booth
+Daily free ticket offers
+
+
+
+Store Clearing System
+Each store location tracks its own zombie count:
+
+Clearing Condition: Eliminate all zombies in a store
+Clearing Rewards:
+
+Parents used for baby-making return
+5 bonus dice added to pool
+Visual "Store Cleared" indicator
+
+
+
+Special Systems
+Fire Spread
+
+Fire tiles (🔥) spread throughout the board over time
+Creates visual fire effects
+Can clear other tiles when matched
+
+Poison Tiles
+
+Added by snake effects
+Distinctive appearance with biohazard symbol (☣️)
+Creates negative effects when matched
+
+Resource Management
+The game balances multiple resources:
+
+Score (accumulated points)
+Humans (versatile resource)
+Babies (future humans)
+Zombies (enemies to clear)
+Dice Pool (varies by store theme)
+Tickets (for theme park rides)
+
+This intricate web of interconnected systems creates a complex and strategic gameplay experience where managing your limited resources (especially humans) across multiple systems is key to success. The game blends match puzzles with simulation elements to create a unique zombie mall management experience.
+
+
+1. Dice Pool System
+
+Created a central "dice pool" that's visible in the lobby
+Each store has its own themed dice that are limited resources
+You can see all available dice in the bag UI in the top-right corner
+Dice are consumed from the pool when creating new dice
+
+2. Visual Adjustments
+
+Made dice smaller (40px instead of 50px)
+Added themed pegs for each store:
+
+Lobby: Blue circles
+Food Court: Red squares
+Arcade: Blue diamonds
+Clothing: Pink squares (rotated)
+
+
+Themed walls to match each store aesthetic
+
+3. Game Mechanics Changes
+
+Starting resources: 3 babies, 10 adults, 5 zombies
+Removed reshuffle button
+Human matches now trigger searches for more dice
+Matching 2 humans in the lobby is required to make a baby
+Parents are returned after clearing zombies from a store
+Each store tracks its own zombie count
+
+4. UI Changes
+
+Added a "dice bag" showing all available dice by type
+Added a dice stack in the lobby that shows available dice to use
+Kept the level switcher at the bottom
+
+How to Play
+
+In the Lobby:
+
+Click on dice in the dice stack to drop them
+Use "Make Baby" button to create babies (costs 2 humans temporarily)
+Match store-themed dice to build your pool
+
+
+In Store Levels:
+
+Clear zombies by making matches next to them
+Match humans to search for more dice in the pool
+Use adjacent column swapping strategically
+Clear all zombies to get a reward and return any parents
+
+
+Resource Management:
+
+Dice are limited resources - use them wisely
+Babies grow into adults over time if you have shelters
+Parents used for baby-making return after clearing stores
+
+
+
+The game now has a complete strategic loop: use your resources wisely in the lobby to build up your dice pool, then venture into stores to clear zombies and earn more dice.
+Let me know if you need any clarification or want any further adjustments!RetryBgreat - while i test this, can you provide detailed breakdown of the rules, interactions and systems currently in place - as if creating a detailed instructional booklet.Crafted comprehensive rulebook for Zombie Mall Dice game.I'll create a detailed instructional booklet for the Zombie Mall Dice game, breaking down all the rules, interactions, and systems currently in place. I'll organize it into clear sections covering all aspects of the game.
+Here's how I'll structure the instruction booklet:
+
+Game Overview & Concept
+Core Game Elements (dice, tiles, characters)
+Game Spaces (lobby, stores)
+Resource Management
+Lobby Gameplay
+Store Gameplay
+Matching Mechanics
+Special Effects & Power-ups
+Zombie Mechanics
+Human & Baby Mechanics
+UI Elements & Controls
+Advanced Strategies
+
+I'll make sure to explain all the interactions and systems in detail with clear explanations of cause and effect.ZOMBIE MALL DICE
+Official Instructional Guide
+
+GAME OVERVIEW
+Zombie Mall Dice is a physics-based match-three puzzle game where you manage a community of survivors in a mall overrun by zombies. You'll drop and match dice with different emojis, manage resources, clear zombies from stores, and build your survivor community.
+
+CORE GAME ELEMENTS
+Dice
+
+Dice Types: Each themed area has its own set of dice
+
+Mall Dice (🛍️, 🛒, 💰, 💳, 👨, 👩)
+Food Court Dice (🍕, 🍔, 🍟, 🥤, 🧟‍♂️, 👨)
+Arcade Dice (🎮, 🎰, 🎯, 🎪, 🧟‍♀️, 👩)
+Clothing Store Dice (👗, 👚, 👖, 👠, 🧟‍♂️, 👨)
+Zombie Dice (🧟‍♂️, 🧟‍♀️, 👨, 👩, 🔥, 💀)
+
+
+Dice Pool: Each dice type has a limited count in your inventory
+
+Starting amounts: 20 Mall, 15 Food, 15 Arcade, 15 Clothing, 0 Zombie
+View your inventory in the "Available Dice" panel
+
+
+Dice Physics: Dice bounce off pegs and walls as they fall
+
+Each die will randomly show different faces as it tumbles
+The face showing when it lands determines its effect
+
+
+
+Characters
+
+Humans (👨, 👩)
+
+Starting amount: 10 adults, 3 babies
+Used to trigger searches and make babies
+Parents can be assigned to make babies (temporarily removed from count)
+
+
+Zombies (🧟‍♂️, 🧟‍♀️, 💀)
+
+Starting amount: 5 zombies
+🧟‍♂️ and 🧟‍♀️ have 2 health points
+💀 (boss zombie) has 5 health points
+Each store tracks its own zombie count
+
+
+
+Special Elements
+
+Fire (🔥): Spreads to other tiles over time
+Money (💰, 💳): Provides bonus dice when matched
+
+
+GAME SPACES
+The Lobby
+
+Central hub for resource management
+Where you can make babies and deploy dice
+Displays the Dice Stack showing available dice types
+Blue circular pegs guide dice as they fall
+
+Stores
+
+Food Court: Red square pegs, food-themed dice
+Arcade: Blue diamond pegs, arcade-themed dice
+Clothing Store: Pink square pegs, clothing-themed dice
+Each store has its own zombie counter and themed obstacles
+Stores are pre-populated with themed dice when first entered
+
+
+RESOURCE MANAGEMENT
+Dice Economy
+
+Obtaining Dice:
+
+Making matches (1 die added to pool per regular match)
+Money matches (3 dice for matching 💰 or 💳)
+Special matches (5+ dice for matching three identical dice across columns)
+Clearing a store (5 themed dice as reward)
+
+
+Using Dice:
+
+Click dice in the Dice Stack to drop them from the pool
+Human search actions consume dice from the pool
+Each dice type is a limited resource that must be managed
+
+
+
+Human Resources
+
+Adults: Used for baby-making and searches
+Babies: Grow into adults over time if you have shelters
+Parents: Temporarily removed when making babies, returned after clearing a store
+
+Shelters
+
+Built in the lobby (not currently used but framework is there)
+Help babies grow into adults faster
+
+
+LOBBY GAMEPLAY
+Making Babies
+
+Click the "Make Baby" button (requires 2 humans)
+Two humans are temporarily removed from your count
+One baby is added to your count
+Babies will grow into adults over time if you have shelters
+Parents return after you clear a store of zombies
+
+Using Dice Stack
+
+In the lobby, the Dice Stack appears at the bottom of the screen
+Each icon represents a type of dice available in your pool
+Click an icon to drop a die of that type
+The die will tumble through the pegs with randomly changing faces
+When it lands, it joins a column with the face showing
+
+
+STORE GAMEPLAY
+Entering Stores
+
+Click on store buttons at the bottom of the screen
+First visit automatically populates the store with themed dice
+Each store tracks its own zombie count
+
+Clearing Zombies
+
+Zombies (🧟‍♂️, 🧟‍♀️) have 2 health points
+Boss zombies (💀) have 5 health points
+Match two identical tiles adjacent to zombies to damage them
+Each successful match damages adjacent zombies by 1 point
+Clearing all zombies from a store:
+
+Returns parent dice from baby-making
+Gives 5 themed dice as a reward
+Shows a "STORE CLEARED!" notification
+
+
+
+Store-Specific Challenges
+
+Each store has unique layouts and obstacles
+More zombies will spawn over time
+Fire can spread, complicating your strategy
+
+
+MATCHING MECHANICS
+Basic Matching
+
+Two of a Kind: Match two identical dice in the same column
+
+Both dice are removed
+Appropriate effect is triggered based on the emoji
+Score increases (typically +10 points)
+
+
+
+Special Matching
+
+Three of a Kind Across Columns: Match three identical dice across adjacent columns
+
+All three dice are removed
+Powerful effect triggered based on the emoji
+Larger score bonus (+30 points)
+Special effects are much stronger than basic matches
+
+
+
+Swapping Mechanic
+
+Click on a column to select it (highlighted)
+Click on an adjacent column to swap the top dice
+Click on the same column again to deselect it
+Click on a non-adjacent column to change selection
+
+
+SPECIAL EFFECTS
+Human Matches (👨, 👩)
+
+Basic Match: Add 1 human to your count
+In Stores: Triggers a search for more dice
+Special Match: Triggers 3 searches for more dice
+
+Search Mechanism
+
+Randomly adds themed dice to columns if available in your pool
+Takes dice from your pool and places them in columns
+Great way to add more matching opportunities
+
+Zombie Matches (🧟‍♂️, 🧟‍♀️)
+
+Basic Match: Removes 1 zombie from count, +15 score
+Special Match: Clears zombies in surrounding area
+
+Boss Zombie Matches (💀)
+
+Basic Match: Removes 3 zombies, +50 score
+Special Match: Clears 5 zombies from the store
+
+Money Matches (💰, 💳)
+
+Basic Match: Adds 3 dice to pool, +25 score
+Special Match: Adds 8 dice to pool
+
+Fire Matches (🔥)
+
+Basic Match: Creates fire effect, starts fire spread
+Special Match: Starts multiple fires across columns
+Fire will spread to random columns over time
+
+
+ZOMBIE MECHANICS
+Zombie Types
+
+Regular Zombies (🧟‍♂️, 🧟‍♀️): 2 health points
+Boss Zombies (💀): 5 health points
+
+Zombie Behavior
+
+Zombies spawn randomly in stores over time
+They have health bars showing remaining health
+Zombies are defeated when their health reaches zero
+Each store tracks its own zombie count
+Clearing all zombies from a store gives rewards
+
+
+HUMAN & BABY MECHANICS
+Making Babies
+
+Requires 2 humans
+Parents are temporarily removed from count
+Babies are added to your count
+Parents return after clearing a store
+
+Human Search
+
+Matching humans in stores triggers a search
+Searches add new dice to columns from your pool
+Special human matches trigger multiple searches
+
+
+UI ELEMENTS
+Resource Display
+
+Score: Total points earned
+Zombies: Total zombie count
+Humans: Available human count
+Babies: Current baby count
+Shelters: Number of shelters built
+
+Dice Bag
+
+Shows all available dice by type and count
+Located in the top-right corner
+
+Dice Stack
+
+Visual representation of available dice types
+Click to drop dice into the game
+Only visible in the lobby
+
+Level Selector
+
+Located at the bottom of the screen
+Switches between lobby and stores
+
+Debug Panel (Optional)
+
+Toggle with "Show Debug" button
+Shows detailed logs of game events
+
+
+ADVANCED STRATEGIES
+Resource Management
+
+Balance Dice Usage: Don't deplete your pool too quickly
+Prioritize Clearing Stores: Gets your parents back and rewards more dice
+Strategic Baby-Making: Time it with your store-clearing plans
+
+Matching Strategy
+
+Column Management: Try to keep columns balanced in height
+Zombie Clearance: Focus on clearing zombies near the top first
+Strategic Swapping: Use column swaps to create match opportunities
+
+Fire Management
+
+Fire spreads over time and can disrupt your strategy
+Prioritize matching fire tiles to prevent spread
+Use fire strategically to clear difficult areas
+
+
+SCORING SYSTEM
+
+Basic Match: +10 points
+Human Match: +5 points
+Zombie Match: +15 points
+Boss Zombie Match: +50 points
+Money Match: +25 points
+Special Match: +30 points plus effects
+
+
+PHYSICS ELEMENTS
+Pegs
+
+Different shapes for each store theme
+Guide the dice as they fall
+Create paths and obstacles for strategic dropping
+
+Dice Physics
+
+Bounce realistically off pegs and walls
+Random tumbling shows different faces
+Landing position determines the column
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ZOMBIE MALL DICE - COMPREHENSIVE DESIGN DOCUMENT
+
+## EXECUTIVE SUMMARY
+
+**Game Title:** Zombie Mall Dice - Enhanced
+**Genre:** Physics-Based Match Puzzle / Resource Management Simulation
+**Platform:** Web Browser (HTML5/JavaScript)
+**Engine:** Matter.js Physics Engine
+
+Zombie Mall Dice is a unique hybrid game combining physics-based dice mechanics with match-2/match-3 puzzle gameplay and deep resource management systems. Players manage a community of survivors in a zombie-infested mall, dropping dice through peg boards, making strategic matches, and clearing multiple themed store locations while balancing complex resource economies.
+
+---
+
+## TABLE OF CONTENTS
+
+1. Technical Architecture
+2. Core Game Systems
+3. Physics & Dice Mechanics
+4. Match Mechanics & Scoring
+5. Resource Management Systems
+6. Location & Level Design
+7. Character Systems
+8. Special Mechanics by Location
+9. UI/UX Design
+10. Visual Effects & Animation
+11. Game Progression & Win Conditions
+12. Complete Feature List
+
+---
+
+## 1. TECHNICAL ARCHITECTURE
+
+### 1.1 Technology Stack
+
+**Physics Engine:**
+- Matter.js v0.19.0 for realistic 2D physics simulation
+- Handles dice tumbling, collisions, gravity, and settling
+- Real-time body updates and visual synchronization
+
+**Rendering:**
+- HTML5 Canvas for physics visualization
+- DOM elements for UI and dice faces
+- CSS3 for animations and visual effects
+- Transparent canvas overlay allowing DOM elements to interact with physics bodies
+
+**Core Technologies:**
+- Vanilla JavaScript (ES6+)
+- CSS3 with custom animations and keyframes
+- HTML5 semantic structure
+- Event-driven architecture
+
+### 1.2 System Architecture
+
+**Game State Management:**
+gameState = {
+    // Core Resources
+    score: 0,
+    zombies: 5,
+    humans: 10,
+    babies: 3,
+    shelters: 0,
+    
+    // Dice Management
+    columnStacks: Array(7) of arrays,
+    levelColumnStates: {},
+    dicePool: {
+        mall: 20,
+        food: 15,
+        arcade: 15,
+        clothing: 15,
+        zoo: 15,
+        themepark: 15,
+        zombies: 0
+    },
+    
+    // Level State
+    currentLevel: 'lobby',
+    zombiesPerStore: {},
+    parentsDice: [],
+    
+    // Zoo Features
+    animalCount: { zoo: 0, escaped: 0 },
+    animalHunger: {},
+    animalBehaviorInterval: null,
+    
+    // Theme Park Features
+    ticketCount: 0,
+    activeRides: [],
+    rideStatuses: {},
+    dailyTicketsClaimed: false,
+    
+    // UI State
+    selectedColumn: null,
+    debugEnabled: false,
+    debugEntries: []
+}
+```
+
+**Physics World:**
+- Engine with configurable gravity (x: 0, y: 0.5)
+- Static boundary bodies (ground, left wall, right wall)
+- Dynamic dice bodies with restitution and friction
+- Static peg and wall bodies for level obstacles
+- Mouse constraint for interactive physics
+
+### 1.3 Core Game Loop
+
+1. **Physics Update Cycle** (Matter.js 'afterUpdate' event)
+   - Update dice positions from physics bodies
+   - Update dice visual rotations
+   - Check for dice settling in columns
+   - Trigger match detection when dice land
+
+2. **Column Management**
+   - Track dice in 7 vertical columns
+   - Enable column selection and swapping
+   - Process matches after swaps or dice placement
+   - Update visual representations
+
+3. **Match Processing**
+   - Scan for vertical matches (same column, 2+ consecutive)
+   - Scan for horizontal matches (adjacent columns, top tiles)
+   - Execute match effects based on emoji type
+   - Remove matched dice with animations
+   - Award points and resources
+   - Check for cascading matches
+
+4. **Resource Updates**
+   - Update all counters (score, zombies, humans, etc.)
+   - Update dice pool availability
+   - Update UI displays
+   - Check win/loss conditions
+
+---
+
+## 2. CORE GAME SYSTEMS
+
+### 2.1 Dice Pool System
+
+**Central Resource Management:**
+- Each dice type exists in a limited pool
+- Pool counts displayed in "Dice Bag" UI (top-right)
+- Dice consumed when dropped or created during searches
+- Dice added through matches, store clearing, and bonuses
+
+**Dice Types & Starting Counts:**
+- Mall Dice: 20 (general purpose, lobby)
+- Food Court Dice: 15 (food store themed)
+- Arcade Dice: 15 (arcade store themed)
+- Clothing Store Dice: 15 (clothing store themed)
+- Zoo Dice: 15 (zoo themed)
+- Theme Park Dice: 15 (theme park themed)
+- Zombie Dice: 0 (created during gameplay)
+
+**Dice Acquisition:**
+- Basic match (2 tiles): +1 dice of current level type
+- Money match: +3 dice
+- Special match (3+ tiles): +5 dice
+- Store clearing: +5 themed dice
+- Human searches: Places existing dice from pool
+
+### 2.2 Column & Grid System
+
+**7-Column Layout:**
+- Screen divided into 7 vertical columns
+- Each column can hold up to 8 dice
+- Visual column matcher at bottom 300px of screen
+- Dashed borders separate columns
+
+**Column Interactions:**
+- Click column to select (highlighted)
+- Click adjacent column to swap top dice
+- Click same column to deselect
+- Click non-adjacent to change selection
+- Swapped dice faces exchange, bodies remain in original columns
+
+**Column State Persistence:**
+- Each level saves its column state when exiting
+- State restored when returning to level
+- Allows strategic planning across multiple locations
+
+### 2.3 Match Detection System
+
+**Vertical Matching (Within Column):**
+```
+Algorithm:
+1. For each column, scan bottom to top
+2. Compare adjacent dice emojis
+3. If match found, continue scanning for longer match
+4. Record match with all positions
+5. Skip already-matched indices
+```
+
+**Horizontal Matching (Across Columns):**
+```
+Algorithm:
+1. For each column, get top dice
+2. Compare with adjacent column's top dice
+3. If match, continue checking next column
+4. Record all matching positions
+5. Process match-3+ as special match
+```
+
+**Match Types:**
+- Match-2 (Basic): 2 identical tiles → standard effect
+- Match-3+ (Super): 3+ identical tiles → enhanced effect
+- Vertical matches: within same column
+- Horizontal matches: across adjacent columns
+
+### 2.4 State Persistence System
+
+**Level State Saving:**
+```
+Function: saveColumnState(levelName)
+- Extracts dice emoji and properties (not DOM elements)
+- Converts to JSON-serializable format
+- Stores in gameState.levelColumnStates[levelName]
+```
+
+**Level State Restoration:**
+```
+Function: restoreColumnState(levelName)
+- Retrieves saved state from storage
+- Clears current columns
+- Recreates dice DOM elements
+- Rebuilds column stacks
+- Restores zombie health bars
+- Reattaches event listeners
+```
+
+---
+
+## 3. PHYSICS & DICE MECHANICS
+
+### 3.1 Dice Physics Properties
+
+**Physical Attributes:**
+- Size: 40x40 pixels
+- Restitution (bounciness): 0.6
+- Friction: 0.01
+- Air Friction: 0.01
+- Shape: Rectangle body with rounded corners
+
+**Gravity & Motion:**
+- Gravity: y-axis 0.5 (moderate fall speed)
+- Initial spawn: x-position varies, y-position 50px
+- Velocity check for settling: < 0.1 on y-axis
+- Settling threshold: y > window height - 350
+
+### 3.2 Dice Face Randomization
+
+**Face Mechanics:**
+- 6 faces per die (cube representation)
+- Each face shows different emoji from set
+- Faces positioned in 3D space (translateZ: 20px)
+- Transform rotations: 0°, 90°, 180°, -90° (sides), ±90° (top/bottom)
+
+**Randomization During Fall:**
+```
+Interval: 150ms while dice is in motion
+Process:
+1. Generate random rotation values (0-360° on x, y, z)
+2. Apply transform to dice inner element
+3. Update current face index
+4. Stop when dice settles in column
+```
+
+**Face Color Assignment:**
+```
+Colors based on emoji type:
+- Zombies (🧟‍♂️/🧟‍♀️/💀): #a8e890 (green)
+- Humans (👨/👩): #ffedd8 (light peach)
+- Fire (🔥): #ff9999 (red)
+- Animals: #f5e6b6 (light beige)
+- Theme Park: #ffccfa (light pink)
+- Default: #f0f0f0 (light gray)
+```
+
+### 3.3 Peg System
+
+**Peg Layout Generation:**
+```
+Algorithm (setupLevelPhysics):
+1. Divide screen into 7 column lanes
+2. For each column, create peg columns on sides
+3. Avoid placing pegs in lane centers (keep clear path)
+4. Alternate left/right pegs in zigzag pattern
+5. Add random pegs outside lane centers
+6. Check distance from lane center > 20% of column width
+```
+
+**Peg Types by Level:**
+- Lobby: Circle (20px diameter, blue)
+- Food Court: Square (20px, red)
+- Arcade: Diamond (20px, cyan, rotated 45°)
+- Clothing: Square (20px, pink, rotated 45°)
+- Zoo: Pentagon (custom clip-path, teal)
+- Theme Park: Star (custom clip-path, orange)
+
+**Peg Physics:**
+- Static bodies (non-movable)
+- High restitution: 0.8 (bouncy)
+- Low friction: 0.005 (smooth bounces)
+- Visible: false in physics render (DOM handles visuals)
+
+### 3.4 Wall System
+
+**Wall Properties:**
+- Static rectangular bodies
+- Custom dimensions per level
+- Themed colors matching level aesthetics
+- Create obstacles and guide paths
+
+**Wall Placement Examples:**
+- Food Court: Horizontal bar at top (200x400px)
+- Arcade: Vertical walls on sides (20x200px each)
+- Clothing: Multiple horizontal platforms
+- Zoo: Cage structure with break in barrier
+- Theme Park: Ride track patterns
+
+---
+
+## 4. MATCH MECHANICS & SCORING
+
+### 4.1 Match Effects by Emoji Type
+
+**HUMAN TILES (👨/👩):**
+
+Basic Match (2 tiles):
+- In Lobby: +1 human to count, +5 points
+- In Stores: Triggers search action
+- Search places new dice from pool into columns
+
+Super Match (3+ tiles):
+- In Lobby: Add multiple humans (one per tile), +15 points
+- In Stores: Multiple search actions (count-1 searches)
+- Enhanced resource acquisition
+
+**ZOMBIE TILES (🧟‍♂️/🧟‍♀️):**
+
+Basic Match (2 tiles):
+- Remove 1 zombie from global and store count
+- +15 points
+- Visual removal animation
+
+Super Match (3+ tiles):
+- Remove multiple zombies (one per tile matched)
+- +30 points
+- Chain removal animations
+
+**BOSS ZOMBIE (💀):**
+
+Basic Match (2 tiles):
+- Remove 3 zombies from counts
+- +50 points
+- Powerful clearing effect
+
+Super Match (3+ tiles):
+- Remove 5+ zombies
+- +50+ points (scales with match length)
+- Screen-wide clearing effects
+
+**FIRE TILES (🔥):**
+
+Basic Match (2 tiles):
+- Creates fire visual effect
+- Starts fire spread timer (3 seconds)
+- Adds fire tile to random column after delay
+
+Super Match (3+ tiles):
+- Creates multiple fires
+- Multiple fire spread timers
+- Can trigger chain reactions
+
+**MONEY TILES (💰/💳):**
+
+Basic Match (2 tiles):
+- Add 3 dice to current level's pool
+- +25 points
+- Visual money collection effect
+
+Super Match (3+ tiles):
+- Add 8+ dice to pool
+- +25 points per tile
+- Jackpot visual effect
+
+**BONUS BASKET (🧺):**
+
+Basic Match (2 tiles):
+- Random small bonus: +1 human OR +1 dice OR +50 score
+- +30 points
+
+Super Match (3+ tiles):
+- Mega bonus: +3 humans, +5 dice, -3 zombies, +250 score
+- Confetti and celebration effects
+
+### 4.2 Zoo Animal Effects
+
+**TIGER (🐅):**
+
+Basic Match (2 tiles):
+- Clears zombies in small radius (2 tiles)
+- +20 points
+- Visual claw slash effects
+
+Super Match (3+ tiles):
+- Clears ALL zombies from board
+- +50 points
+- Massive attack animation with multiple slashes
+- Screen shake effect
+
+**LION (🦁):**
+
+Basic Match (2 tiles):
+- Scares away 1 random zombie
+- +15 points
+- Roar visual effect
+
+Super Match (3+ tiles):
+- Scares ALL zombies away
+- +45 points
+- "MIGHTY ROAR" screen-wide effect
+- Orange lighting overlay
+
+**ELEPHANT (🐘):**
+
+Basic Match (2 tiles):
+- Creates shockwave effect (visual)
+- +15 points
+- Concentric wave animation
+
+Super Match (3+ tiles):
+- Creates mega shockwave
+- +40 points
+- Multiple concentric waves
+- Affects larger area
+
+**SNAKE (🐍):**
+
+Basic Match (2 tiles):
+- Adds 1 poison tile (☣️) to random column
+- +10 points
+- Poison tile has negative effects when matched
+
+Super Match (3+ tiles):
+- Adds multiple poison tiles (one per tile matched)
+- +30 points
+- Spreads poison across board
+
+**GIRAFFE (🦒):**
+
+Basic Match (2 tiles):
+- Shows hint for one potential match
+- Highlights columns with matching top tiles
+- +10 points
+- 3-second highlight duration
+
+Super Match (3+ tiles):
+- Reveals ALL potential matches on board
+- Highlights all match opportunities
+- +35 points
+- 5-second highlight duration
+
+**MONKEY (🐒):**
+
+Basic Match (2 tiles):
+- Steals 1 random tile from board
+- Removed tile animated to disappear
+- +10 points
+
+Super Match (3+ tiles):
+- Shuffles ALL tiles on board
+- Reorganizes entire board layout
+- +35 points
+- "Monkey Business!" animation
+
+### 4.3 Theme Park Ride Effects
+
+**FERRIS WHEEL (🎡):**
+
+Basic Match (2 tiles):
+- Shows board overview view
+- +10 points
+- Highlights potential matches
+
+Super Match (3+ tiles):
+- Rotates entire board 90 degrees
+- +40 points
+- All dice reposition with rotation animation
+
+**ROLLER COASTER (🎢):**
+
+Basic Match (2 tiles):
+- Clears one row or column (random selection)
+- +15 points
+- Track animation along cleared path
+
+Super Match (3+ tiles):
+- Clears multiple paths (one per tile matched)
+- +35 points
+- Multiple track animations
+
+**CIRCUS TENT (🎪):**
+
+Basic Match (2 tiles):
+- Adds 1 special bonus tile to board
+- +10 points
+- Bonus tile has enhanced effects
+
+Super Match (3+ tiles):
+- Adds multiple special tiles
+- +30 points
+- Creates combo opportunities
+
+**CAROUSEL (🎠):**
+
+Basic Match (2 tiles):
+- Swaps 2 random tiles on board
+- +10 points
+- Spinning animation
+
+Super Match (3+ tiles):
+- Spins entire board (shuffles tiles in rotating pattern)
+- +35 points
+- Carousel rotation visual effect
+
+**PERFORMER (🎭):**
+
+Basic Match (2 tiles):
+- Transforms 1 random tile to different emoji
+- +10 points
+- Magic sparkle effect
+
+Super Match (3+ tiles):
+- Transforms multiple tiles (one per tile matched)
+- +30 points
+- Stage show visual effect
+
+**TICKET (🎟️):**
+
+Basic Match (2 tiles):
+- Adds tickets equal to match length
+- +10 points
+- Ticket collection animation
+
+Super Match (3+ tiles):
+- Adds double tickets (2 per tile matched)
+- +30 points
+- Jackpot ticket animation
+
+### 4.4 Scoring System
+
+**Point Values:**
+```
+Basic Matches:
+- Standard match: 10 × match_length
+- Human match: 5 points
+- Zombie match: 15 points
+- Boss zombie: 50 points
+- Money match: 25 points
+- Animal matches: 10-20 points
+- Ride matches: 10-15 points
+
+Special Matches (3+):
+- Base points: 20 × match_length
+- Zombie special: +30 points
+- Boss zombie special: +50 points
+- Animal specials: +30-50 points
+- Ride specials: +30-40 points
+```
+
+**Score Accumulation:**
+- Score never decreases
+- Displayed in top-left UI panel
+- Updated after each match resolution
+- No score-based win condition (focus on objectives)
+
+---
+
+## 5. RESOURCE MANAGEMENT SYSTEMS
+
+### 5.1 Human Resource System
+
+**Starting Values:**
+- Adults: 10
+- Babies: 3
+- Parents in queue: 0
+
+**Human Uses:**
+
+1. **Search Actions** (Store Levels)
+   - Cost: 1 human (temporary, not consumed)
+   - Effect: Triggers search in current store
+   - Search adds 1-3 themed dice to random columns
+   - 20% chance for human tiles
+   - 10% chance for money tiles
+   - 70% chance for themed items
+
+2. **Baby-Making** (Lobby Only)
+   - Cost: 2 humans (temporary removal)
+   - Effect: +1 baby immediately
+   - Parents stored in parentsDice array
+   - Parents returned after clearing any store
+
+3. **Zoo Actions**
+   - Capture escaped animals (cost: 1 human per capture)
+   - Feed animals (requires food dice, not humans)
+
+4. **Theme Park Actions**
+   - Purchase tickets (cost: 1 human per transaction)
+   - Fix broken rides (cost: 1 human per repair)
+
+**Human Acquisition:**
+- Matching human tiles (👨/👩)
+- Babies growing into adults (requires shelters)
+- Bonus effects from special matches
+- Store clearing rewards
+
+### 5.2 Baby & Parent System
+
+**Baby-Making Mechanics:**
+```
+Process:
+1. Player clicks "Make Baby" button
+2. Verify humans >= 2
+3. Deduct 2 from human count
+4. Add 2 parent identifiers to parentsDice[]
+5. Increment babies by 1
+6. Display animation: "👨 + 👩 = 👶"
+7. If shelters > 0, start 30-second timer for growth
+```
+
+**Baby Growth:**
+- Requires: shelters > 0
+- Time: 30 seconds per baby
+- Process: Baby automatically converts to adult
+- No growth if no shelters exist
+
+**Parent Return:**
+```
+Trigger: Any store cleared of zombies
+Process:
+1. Count parents in parentsDice[]
+2. Add count to humans
+3. Clear parentsDice[]
+4. Display return notification
+```
+
+### 5.3 Zombie Resource System
+
+**Global Zombie Count:**
+- Starting: 5 zombies
+- Tracks total zombies across all areas
+- Displayed in main UI
+
+**Per-Store Zombie Tracking:**
+```
+zombiesPerStore = {
+    food: 0,
+    arcade: 0,
+    clothing: 0,
+    zoo: 0,
+    themepark: 0
+}
+```
+
+**Zombie Types & Health:**
+- Regular Zombie (🧟‍♂️/🧟‍♀️): 2 HP
+- Boss Zombie (💀): 5 HP
+- Health displayed as colored bar under tile
+- Green bar: full health
+- Red bar: low health
+
+**Zombie Spawning:**
+- New stores pre-populated with themed dice including zombies
+- Fire spread can create zombie tiles
+- No continuous spawning (fixed count per store)
+
+**Zombie Elimination:**
+- Match zombie tiles to damage adjacent zombies
+- Each match deals 1 damage
+- Zombies removed when HP reaches 0
+- Decrement global and store counts
+- Check for store cleared condition
+
+### 5.4 Dice Pool Economy
+
+**Pool Management:**
+```
+Inflow:
++ Basic matches: 1 dice per match
++ Money matches: 3 dice
++ Super matches: 5 dice
++ Store clearing: 5 themed dice
++ Bonus effects: variable
+
+Outflow:
+- Dropping dice: 1 per drop
+- Human searches: places dice from pool
+- Animal feeding: 1 food dice per feed
+```
+
+**Pool Visibility:**
+- "Available Dice" panel (top-right)
+- Shows count per dice type
+- Visual emoji representation
+- Real-time updates
+
+**Pool Constraints:**
+- Cannot drop dice if pool empty for that type
+- Search actions fail if no dice in pool
+- UI elements disabled when pool depleted
+
+### 5.5 Shelter System (Framework)
+
+**Current Implementation:**
+- Counter exists in UI
+- Starting value: 0
+- No building mechanic implemented
+- Affects baby growth timer
+
+**Planned Functionality:**
+- Build shelters using resources
+- Shelters enable baby growth
+- Protect humans from zombie attacks
+- Provide score bonuses
+
+---
+
+## 6. LOCATION & LEVEL DESIGN
+
+### 6.1 Level Configurations
+
+**THE LOBBY (Hub)**
+
+Theme: Central shopping mall area
+Background Color: #3a4a5c (blue-gray)
+
+Pegs (7 total):
+- Blue circles (20px diameter)
+- Positioned: (200,200), (300,250), (400,200), (500,250), (250,350), (350,300), (450,350)
+- Create scattered pattern for varied dice paths
+
+Walls: None
+
+Special Features:
+- Dice stack visible (bottom center)
+- Make Baby button active
+- Access to all store levels
+- No zombies spawn here
+- Safe planning area
+
+Emoji Set: Mall themed
+- 🛍️ Shopping bag
+- 🛒 Shopping cart
+- 💰 Money bag
+- 💳 Credit card
+- 👨 Man
+- 👩 Woman
+
+**FOOD COURT**
+
+Theme: Restaurant and dining area
+Background Color: #5c3a3a (reddish-brown)
+
+Pegs (9 total):
+- Red squares (20px)
+- Layout: 5 top row (y:200), 4 middle row (y:300)
+- Positions: (150,200), (250,200), (350,200), (450,200), (550,200), (200,300), (300,300), (400,300), (500,300)
+
+Walls:
+- Horizontal barrier: (200, 150, 400, 20) - top obstacle
+
+Special Features:
+- Pre-populated with food dice and zombies
+- Search yields food-themed items
+- Red themed obstacles
+
+Emoji Set: Food themed
+- 🍕 Pizza
+- 🍔 Burger
+- 🍟 Fries
+- 🥤 Drink
+- 🧟‍♂️ Zombie
+- 👨 Man
+
+**ARCADE**
+
+Theme: Gaming and entertainment area
+Background Color: #3a5c3a (green)
+
+Pegs (11 total):
+- Blue diamonds (20px, rotated 45°)
+- Three rows: top (y:150, 4 pegs), middle (y:250, 3 pegs), bottom (y:350, 4 pegs)
+
+Walls:
+- Left wall: (100, 250, 20, 200)
+- Right wall: (580, 250, 20, 200)
+- Create narrow channel effect
+
+Special Features:
+- Side walls funnel dice to center
+- Game-themed obstacles
+- Higher peg density
+
+Emoji Set: Arcade themed
+- 🎮 Game controller
+- 🎰 Slot machine
+- 🎯 Dartboard
+- 🎪 Circus tent
+- 🧟‍♀️ Zombie woman
+- 👩 Woman
+
+**CLOTHING STORE**
+
+Theme: Fashion retail area
+Background Color: #3a3a5c (purple-blue)
+
+Pegs (9 total):
+- Pink squares (20px, rotated 45°)
+- Alternating pattern: rows at y:150, 200, 300, 350
+
+Walls:
+- Top platform: (300, 100, 100, 20)
+- Middle left: (200, 200, 100, 20)
+- Middle right: (400, 200, 100, 20)
+- Creates shelf-like obstacles
+
+Special Features:
+- Platform jumping pattern
+- Fashion-themed aesthetics
+- Diamond-shaped pegs
+
+Emoji Set: Clothing themed
+- 👗 Dress
+- 👚 Shirt
+- 👖 Jeans
+- 👠 High heel
+- 🧟‍♂️ Zombie
+- 👨 Man
+
+**ZOO**
+
+Theme: Wildlife exhibit area
+Background Color: #2a623d (forest green)
+
+Pegs (8 total):
+- Pentagons (custom clip-path, teal)
+- Cage pattern: corners and edges
+- Positions create pen-like structure
+
+Walls (Cage Structure):
+- Left cage: (200, 200, 20, 200)
+- Right cage: (500, 200, 20, 200)
+- Top bar: (350, 100, 300, 20)
+- Bottom bar: (350, 400, 300, 20)
+- Broken section: (300, 250, 50, 20) - escape route
+
+Special Features:
+- Animal hunger system active
+- Escape mechanics enabled
+- Feeding button appears
+- Cage visual design
+
+Emoji Set: Animal themed
+- 🐅 Tiger
+- 🐘 Elephant
+- 🐍 Snake
+- 🦒 Giraffe
+- 🦁 Lion
+- 🐒 Monkey
+
+**THEME PARK**
+
+Theme: Amusement park rides area
+Background Color: #4a3c7d (festive purple)
+
+Pegs (9 total):
+- Stars (custom clip-path, orange)
+- Carousel pattern: center cluster + corner positions
+
+Walls (Ride Tracks):
+- Left track: (200, 200, 100, 10)
+- Right track: (500, 200, 100, 10)
+- Bottom track: (350, 350, 400, 10)
+- Create ride path visual
+
+Special Features:
+- Ticket counter visible
+- Ride elements displayed
+- Maintenance system active
+- Festive atmosphere
+
+Emoji Set: Theme park themed
+- 🎡 Ferris wheel
+- 🎢 Roller coaster
+- 🎪 Circus tent
+- 🎠 Carousel
+- 🎭 Theater masks
+- 🎟️ Admission ticket
+
+### 6.2 Level Navigation
+
+**Level Selector:**
+- Located at bottom of screen
+- Buttons for each accessible level
+- Active level highlighted
+- State saves when switching
+- State restores when returning
+
+**Level Unlocking:**
+- All levels available from start
+- No progressive unlocking currently
+- Zoo and Theme Park added dynamically on first load
+
+### 6.3 Level-Specific UI
+
+**Lobby UI:**
+- Dice stack display (bottom center)
+- Make Baby button (top-left panel)
+- Full resource display
+- No store-specific panels
+
+**Store UI:**
+- Store name label (top center)
+- Store info panel (top-left, secondary position)
+  - Store zombie count
+  - Available dice count
+  - Send Human to Search button
+- Store Cleared indicator (when applicable)
+- Hidden dice stack
+
+**Zoo UI:**
+- Animal info panel
+  - Animals in cages count
+  - Escaped animals count
+  - Feed Animals button (costs food dice)
+
+**Theme Park UI:**
+- Ticket counter (top-left, below resources)
+  - Ticket emoji 🎟️
+  - Current ticket count
+- Ticket shop element (clickable booth)
+- Ride status indicators on each ride
+
+---
+
+## 7. CHARACTER SYSTEMS
+
+### 7.1 Human Character Mechanics
+
+**Visual Representation:**
+- Emoji: 👨 (man) or 👩 (woman)
+- Appear as dice faces
+- Color: #ffedd8 (light peach background)
+- No special animations beyond standard dice
+
+**Behavior:**
+- Passive resource (player-controlled)
+- No autonomous movement
+- Used via player actions (buttons, matches)
+
+**Human Tiles in Gameplay:**
+- Can be matched like other dice
+- Matching humans in lobby adds to count
+- Matching humans in stores triggers searches
+- Humans on board are separate from human count
+
+### 7.2 Baby System
+
+**Visual Representation:**
+- Tracked in UI counter only
+- No board representation
+- Icon: 👶
+
+**Baby States:**
+- New (just created): Start 30-second timer if shelters > 0
+- Growing: Timer counting down
+- Mature: Converts to adult automatically
+
+**Growth Mechanics:**
+```
+Growth Requirements:
+- Shelters must be > 0
+- Time: 30 seconds
+- Automatic conversion
+
+Growth Process:
+1. Timer completes
+2. babies count decrements
+3. humans count increments
+4. UI updates
+5. Log entry created
+```
+
+### 7.3 Zombie Character Mechanics
+
+**Visual Representation:**
+- Regular: 🧟‍♂️ (zombie man) or 🧟‍♀️ (zombie woman)
+- Boss: 💀 (skull)
+- Color: #a8e890 (pale green background)
+
+**Health System:**
+```
+Regular Zombies:
+- Starting HP: 2
+- Health bar under tile (green when full, red when low)
+- Visual health indicator width = HP / max_HP
+
+Boss Zombies:
+- Starting HP: 5
+- Larger health bar
+- More resistant to matches
+- Higher point value
+```
+
+**Health Modification:**
+```
+Function: setZombieHealth(element, health)
+1. Create health bar div
+2. Append to zombie element
+3. Store HP in element.dataset
+4. Update bar width based on current/max ratio
+5. Color: green (HP > 50%), red (HP <= 50%)
+```
+
+**Damage Mechanics:**
+- Matching tiles adjacent to zombies deals damage
+- Each match = 1 damage point
+- Zombie removed when HP reaches 0
+- Multiple matches can chain damage
+
+**Zombie Behavior:**
+- Static on board (no movement)
+- No autonomous actions
+- Affected by animal attacks (zoo level)
+- Can be cleared by special effects
+
+### 7.4 Animal Character System (Zoo)
+
+**Animal Hunger Mechanics:**
+```
+Hunger System:
+- Each animal has hunger value (1-10)
+- Hunger increases every 10 seconds
+- Visual hunger bar under animal tile
+- Bar color: green (low hunger) → orange (medium) → red (high)
+- Bar width scales with hunger level
+
+Hunger States:
+- 1-4: Content (green bar)
+- 5-7: Hungry (orange bar)
+- 8-10: Aggressive (red bar, animal attacks)
+```
+
+**Aggressive Behavior by Animal:**
+```
+When hunger >= 8:
+- Tiger/Lion: Attacks adjacent tiles (humans/zombies)
+- Elephant: Creates shockwave
+- Snake: Adds poison tiles
+- Monkey: Steals random tiles
+- Giraffe: No aggressive action (passive)
+```
+
+**Animal Feeding:**
+```
+Function: feedAnimals()
+Cost: 1 food dice from pool
+Effect: Reset ALL animals' hunger to 1
+Visual: Food elements falling animation
+Duration: Prevents aggression for ~100 seconds
+```
+
+**Animal Escape System:**
+```
+Escape Mechanics:
+- 10% chance every 10 seconds (during zoo behavior interval)
+- Escaped animals:
+  - Increment gameState.animalCount.escaped
+  - Decrement gameState.animalCount.zoo
+  - Visual: Bounce animation outside columns
+  - Require human to capture
+
+Capture Process:
+- Click escaped animal
+- Requires 1 human
+- Returns animal to cage
+- Decrement escaped count
+```
+
+**Animal Tile Properties:**
+```
+Each animal tile stores:
+- emoji: animal type
+- hunger: current hunger level (1-10)
+- maxHealth: species-specific value
+- Element contains hunger bar div
+```
+
+### 7.5 Theme Park Ride System
+
+**Ride Structure:**
+```
+Each ride has:
+- id: unique identifier (e.g., 'ferrisWheel')
+- element: DOM element reference
+- emoji: visual representation
+- position: x, y coordinates
+- status: 'operational' or 'broken'
+- maintenance: value 0-100 (percentage)
+- lastFixTime: timestamp of last repair
+```
+
+**Four Rides:**
+
+1. **Ferris Wheel (🎡)**
+   - Position: 25% screen width, y:150
+   - Effect: Board overview / match hints
+
+2. **Roller Coaster (🎢)**
+   - Position: 45% screen width, y:200
+   - Effect: Clears row/column
+
+3. **Carousel (🎠)**
+   - Position: 65% screen width, y:150
+   - Effect: Swaps tiles
+
+4. **Teacups (☕)**
+   - Position: 85% screen width, y:180
+   - Effect: Transforms tiles
+
+**Maintenance System:**
+```
+Maintenance Degradation:
+- Decreases over time (every 15 seconds)
+- Rate: -5 to -15 per interval (random)
+- Visual status bar shows percentage
+- Color: green (>70%) → orange (40-70%) → red (<40%)
+
+Breakdown Chance:
+- Based on maintenance level
+- High maintenance: low chance
+- Low maintenance: high chance
+- Broken rides unusable until repaired
+
+Repair Process:
+- Cost: 1 human
+- Click broken ride
+- Maintenance restored to 100%
+- Status changed to 'operational'
+- Visual update: red → green
+```
+
+**Ride Usage:**
+```
+Using a Ride:
+1. Verify ride operational
+2. Check ticket count >= 1
+3. Deduct 1 ticket
+4. Trigger ride effect
+5. Show ride animation
+6. Update displays
+```
+
+---
+
+## 8. SPECIAL MECHANICS BY LOCATION
+
+### 8.1 Zoo Special Mechanics
+
+**Animal Management Loop:**
+```
+Function: startAnimalBehavior()
+Interval: 10 seconds
+Actions per tick:
+1. updateAnimalHunger() - increment all hunger values
+2. Random escape check (10% chance)
+3. Check for aggressive behaviors
+4. Update visual indicators
+```
+
+**Feeding System:**
+```
+Prerequisites:
+- Food dice in pool >= 1
+- Animals present in zoo
+
+Process:
+1. Player clicks "Feed Animals" button
+2. Deduct 1 from food dice pool
+3. Reset all animal hunger to 1
+4. Update all hunger bars to green
+5. Show feeding animation
+6. Log: "Animals have been fed!"
+
+Visual Effect:
+- 5 food emojis (🥩,🍖,🦴,🥕,🍎) appear randomly
+- Animated fall and fade
+- Text: "🦒 Animals Fed! 🦁"
+- 1-second animation duration
+```
+
+**Escape Management:**
+```
+Escape Trigger:
+- 10% chance per behavior tick
+- Random animal selected from board
+
+Escaped Animal:
+- Removed from column/board
+- Added to escaped count
+- DOM element created outside grid
+- Bounce animation applied
+- Click to capture
+
+Capture:
+- Cost: 1 human
+- Returns animal to board
+- Adds back to zoo count
+- Removes escaped element
+```
+
+**Animal Special Attacks (When Hungry):**
+```
+Tiger/Lion Attack:
+Function: attackAdjacentTile(columnIndex)
+1. Target adjacent columns (left, right, same)
+2. Find human or zombie tile
+3. Remove tile with animation
+4. Update resource counts
+5. Show attack effect (💥)
+
+Elephant Shockwave:
+Function: createElephantShockwave()
+1. Create circular wave element
+2. Expand from center
+3. Visual effect only (no tile damage)
+4. "🐘 TRUMPET!" text display
+
+Snake Poison:
+Function: addPoisonTile()
+1. Find empty column space
+2. Add ☣️ poison tile
+3. Poison tile has negative effects
+4. Green color (#adff2f)
+
+Monkey Steal:
+Function: stealRandomTile()
+1. Select random non-empty column
+2. Remove top tile
+3. Animate tile disappearing
+4. No resource added (lost)
+```
+
+### 8.2 Theme Park Special Mechanics
+
+**Ticket Economy:**
+```
+Ticket Acquisition:
+- Match ticket emoji (🎟️): +1 per tile
+- Super match tickets: +2 per tile
+- Purchase at ticket booth: cost 1 human, gain 3 tickets
+- Daily free tickets: 5 tickets per day
+
+Ticket Usage:
+- Ride usage: 1 ticket per ride
+- No other uses currently
+
+Ticket Display:
+- Counter: top-left, below main resources
+- Emoji: 🎟️
+- Count: numeric value
+- Real-time updates
+```
+
+**Ride Maintenance Loop:**
+```
+Function: startRideMaintenance()
+Interval: 15 seconds
+Actions per tick:
+1. Decrease maintenance for all rides
+2. Check for breakdown triggers
+3. Update status bars
+4. Update ride availability
+
+Maintenance Decrease:
+- Random: -5 to -15 per interval
+- Faster degradation = more rides used
+- No maintenance if ride unused
+
+Breakdown:
+- Chance increases as maintenance decreases
+- Broken ride: status bar turns red
+- Ride class: 'broken' added
+- Click shows "🛑 Ride Broken!" message
+```
+
+**Ticket Booth:**
+```
+Element: ticket-shop div
+Visual: 🎟️ emoji, 80x80px box
+Position: (80, 150)
+Hover: Scale 1.1
+
+Interaction:
+1. Player clicks booth
+2. Check humans >= 1
+3. Deduct 1 human
+4. Add 3 tickets
+5. Show purchase animation
+6. Update displays
+```
+
+**Daily Ticket System:**
+```
+Flag: gameState.dailyTicketsClaimed
+Trigger: First visit to theme park per session
+Amount: 5 free tickets
+Reset: Would need localStorage for true daily (not implemented)
+
+Function: offerDailyTickets()
+1. Check if already claimed
+2. If not, add 5 tickets
+3. Set flag to true
+4. Show notification
+```
+
+### 8.3 Fire Spread System
+
+**Fire Creation:**
+```
+Trigger: Matching fire emoji (🔥)
+Function: createFireEffect()
+
+Visual Effect:
+1. Create div with red gradient
+2. Position at bottom-above-columns (300px from bottom)
+3. Fade in (0.5s)
+4. Fade out (1s)
+5. Remove element
+
+Spread Trigger:
+Function: startFireSpread()
+Timer: 3 seconds after fire match
+```
+
+**Fire Spreading:**
+```
+Process:
+1. Select random column
+2. Check if column has space (< 8 tiles)
+3. Create new fire tile (🔥)
+4. Add to column with animation
+5. Visual effect: Fire burst at column
+
+Properties of Fire Tile:
+- Emoji: 🔥
+- Color: #ff9999 (red)
+- Can be matched like other tiles
+- Matching removes fire but may create new spread
+```
+
+**Fire Chain Reactions:**
+```
+Scenario:
+- Multiple fire tiles created
+- Each fire has independent spread timer
+- Can create fire feedback loops
+- Strategic matching required to control
+```
+
+### 8.4 Poison System
+
+**Poison Tile Creation:**
+```
+Source: Snake matches in zoo
+Function: addPoisonTile()
+
+Process:
+1. Scan for columns with space
+2. Select first available column
+3. Create poison tile (☣️)
+4. Add to column
+5. Show poison fall animation
+
+Tile Properties:
+- Emoji: ☣️ (biohazard)
+- Color: #adff2f (lime green)
+- Special property: isPoison = true
+```
+
+**Poison Effects:**
+```
+When Matched:
+- Removes adjacent tiles (damage effect)
+- No positive resource gain
+- May spread to nearby tiles
+- Visual: Poison cloud effect
+
+Strategic Use:
+- Can clear zombies
+- Can remove unwanted tiles
+- Risky if not controlled
+```
+
+### 8.5 Search System
+
+**Search Mechanics:**
+```
+Trigger: Human match in store levels
+Cost: Dice from current level pool
+Function: triggerHumanSearch()
+
+Search Process:
+1. Define search area (center ± 1-2 columns radius)
+2. For each column in area:
+   - 50% chance to add tile
+   - Check column not full
+   - Check dice in pool
+3. Select emoji:
+   - 20% human (👨/👩)
+   - 10% money (💰/💳)
+   - 70% themed item
+4. Create tile with animation
+5. Add to column
+6. Deduct from dice pool
+
+Results:
+- 0-5 new tiles added (depending on space and dice)
+- Visual: "SEARCH!" indicator
+- If no tiles added: "Search Found Nothing!" message
+```
+
+**Search Animations:**
+```
+Tile Appearance:
+1. Tile created with scale(0)
+2. Transition to scale(1) over 0.3s
+3. Stagger: 50ms delay between tiles
+4. Fall into place in column
+
+Visual Indicator:
+- "SEARCH!" text at center screen
+- 1-second display
+- Yellow color with glow
+```
+
+---
+
+## 9. UI/UX DESIGN
+
+### 9.1 Main UI Panels
+
+**Resource Display (Top-Left):**
+```
+Container: .ui-container
+Size: 180px × auto
+Background: rgba(0,0,0,0.7)
+Border-radius: 8px
+Padding: 10px
+
+Elements:
+- 💯 Score: [value]
+- 🧟‍♂️ Zombies: [value]
+- 👨‍👩‍👧‍👦 Humans: [value]
+- 👶 Babies: [value]
+- 🏠 Shelters: [value]
+
+Layout: Flex, space-between
+Font: Arial, white text
+Updates: Real-time
+```
+
+**Dice Bag (Top-Right):**
+```
+Container: .dice-bag
+Size: 220px × auto
+Background: rgba(0,0,0,0.7)
+Position: Fixed top-right (10px, 10px)
+Z-index: 10
+
+Header: "Available Dice" (bold, 16px, centered)
+
+Dice Groups:
+For each dice type with count > 0:
+  - Container: .dice-group (background: rgba(50,50,50,0.7))
+  - Emoji: Large icon (18px)
+  - Name: Type label (e.g., "Mall Dice")
+  - Count: Number available (bold, right-aligned)
+
+Auto-updates when pool changes
+```
+
+**Dice Stack (Bottom-Center, Lobby Only):**
+```
+Container: .dice-stack
+Position: Fixed bottom, 320px from bottom, centered
+Size: Max 80% screen width
+Background: rgba(0,0,0,0.7)
+Border-radius: 10px
+Padding: 10px
+
+Contents:
+- Dice icons for available types in current level
+- Each icon: 40×40px, clickable
+- Hover effect: Scale 1.1
+- Disabled state: Opacity 0.3 (if pool empty)
+
+Visibility:
+- Display: flex in lobby
+- Hidden in store levels
+- Flex-wrap for multiple dice types
+```
+
+**Level Selector (Bottom-Left):**
+```
+Container: .level-selector
+Position: Fixed bottom-left (10px, 10px)
+Layout: Flex row, gap 10px
+Max-width: 80%
+Z-index: 10
+
+Buttons:
+- One per level
+- Text: Level name
+- Size: Auto width, 30px height
+- Style: Rounded (5px), dark background
+- Active: Lighter background (rgba(255,255,255,0.3))
+- Hover: Cursor pointer
+
+Levels:
+- Lobby (default active)
+- Food Court
+- Arcade
+- Clothing Store
+- Zoo (added dynamically)
+- Theme Park (added dynamically)
+```
+
+### 9.2 Store-Specific UI
+
+**Shop Info Panel (Store Levels):**
+```
+Container: .shop-info
+Position: Fixed (240px from left, 90px from top)
+Size: 200px × auto
+Background: rgba(0,0,0,0.7)
+Z-index: 10
+
+Elements:
+1. Header: "[Store Name] Shop" (bold, 16px, centered)
+2. Zombie Count: "🧟‍♂️ Zombies: [count]"
+3. Dice Count: "🎲 Available: [count]"
+4. Button: "👨 Send Human to Search"
+   - Disabled if humans <= 0
+   - Click triggers search
+
+Updates: When entering store, after actions
+```
+
+**Store Cleared Indicator:**
+```
+Element: .shop-cleared-indicator
+Condition: Displayed when store zombies = 0
+Position: Fixed top-center (70px from top)
+Size: Auto
+Background: rgba(0,255,0,0.3)
+Color: White
+Text: "✓ Store Cleared!"
+Font: Bold
+Padding: 5px 10px
+Border-radius: 5px
+Z-index: 20
+```
+
+**Zoo Animal Info Panel:**
+```
+Container: .animal-info (similar styling to shop-info)
+Position: Below shop info
+
+Elements:
+1. Header: "Zoo Animals" (bold, centered)
+2. "🦒 In Cages: [count]"
+3. "🐅 Escaped: [count]"
+4. Button: "🥩 Feed Animals"
+   - Disabled if food dice <= 0
+   - Click feeds all animals
+
+Visibility: Zoo level only
+```
+
+**Theme Park Ticket Counter:**
+```
+Container: .ticket-counter
+Position: Fixed (10px left, 150px top)
+Size: Auto
+Background: rgba(0,0,0,0.7)
+Layout: Flex row
+Z-index: 10
+
+Elements:
+- Emoji: 🎟️ (24px)
+- Count: [number] (18px, bold)
+- Gap: 10px between elements
+
+Visibility: Theme Park only
+```
+
+### 9.3 Interactive Elements
+
+**Column Matcher:**
+```
+Container: .column-matcher
+Position: Fixed bottom, 0-300px height
+Size: Full width
+Background: rgba(0,0,0,0.2)
+Layout: Flex, space-around
+Z-index: 5
+
+Columns (7):
+- Class: .matcher-column
+- Width: 60px
+- Height: 100%
+- Border: Dashed vertical lines
+- Flex: Column-reverse (stack from bottom)
+- Cursor: Pointer
+
+Selected State:
+- Background: rgba(255,255,255,0.2)
+- Box-shadow: 0 0 10px rgba(255,255,255,0.5)
+
+Interaction:
+- Click to select
+- Click adjacent to swap
+- Click same to deselect
+```
+
+**Dice Elements:**
+```
+Container: .dice
+Size: 40×40px
+Position: Absolute (when falling) or Relative (in column)
+Perspective: 600px (for 3D effect)
+
+Inner: .dice-inner
+- Transform-style: preserve-3d
+- Transition: 0.1s linear
+
+Faces (6): .dice-face
+- Positioned absolute
+- Size: 100%
+- Backface-visibility: hidden
+- Border: 2px solid rgba(255,255,255,0.3)
+- Border-radius: 6px
+- Box-shadow: 0 0 10px rgba(0,0,0,0.5)
+- Transform: Rotated for 3D cube
+
+Face Content:
+- Emoji: 24px font
+- Centered: Flexbox center
+- Background: Dynamic color based on emoji type
+```
+
+**Make Baby Button:**
+```
+Container: #make-baby-btn
+Class: .make-baby-btn
+Position: Inside .ui-container
+Text: "Make Baby (2 Humans)"
+Size: 100% width, auto height
+Padding: 8px
+Background: #4a4a9c
+Color: White
+Border: None
+Border-radius: 5px
+Cursor: Pointer
+Margin-top: 10px
+
+Disabled State:
+- Background: #333
+- Color: #888
+- Cursor: Not-allowed
+- Condition: humans < 2
+
+Visibility:
+- Lobby: Visible
+- Stores: Hidden
+```
+
+**Shop Action Buttons:**
+```
+Class: .shop-button
+Similar styling to Make Baby button
+Examples:
+- "👨 Send Human to Search" (stores)
+- "🥩 Feed Animals" (zoo)
+
+Disabled when:
+- Humans <= 0 (search)
+- Food dice <= 0 (feed)
+```
+
+### 9.4 Visual Effects & Animations
+
+**Match Indicators:**
+```
+Element: .match-indicator
+Position: Absolute, positioned near match location
+Font-size: 24px (basic) or 28px (super)
+Font-weight: Bold
+Color: Yellow (basic) or Gold (super)
+Text-shadow: 0 0 10px glow
+Z-index: 20
+
+Animation: Blink
+- 0%: Opacity 1
+- 50%: Opacity 0.5
+- 100%: Opacity 1
+Duration: 0.5s infinite
+
+Text:
+- Basic match: "MATCH!"
+- Super match: "SUPER MATCH!"
+
+Lifecycle: 1 second, then removed
+```
+
+**Bonus Effects:**
+```
+Element: .bonus-effect
+Position: Absolute, centered on trigger
+Font-size: 24px
+Font-weight: Bold
+Padding: 10px 20px
+Background: rgba(0,0,0,0.7)
+Border-radius: 10px
+Color: Yellow
+Z-index: 30
+
+Animation: Float-up
+- 0%: translateY(0), opacity 1
+- 100%: translateY(-100px), opacity 0
+Duration: 2s
+
+Examples:
+- "+10 SCORE"
+- "+3 DICE"
+- "BABY MADE!"
+```
+
+**Animal Sprites:**
+```
+Element: .animal-sprite
+Position: Absolute (for escaped animals)
+Font-size: 30px
+Z-index: 10
+Filter: Drop-shadow
+Transition: All 0.5s ease
+Cursor: Pointer
+
+Escaped State:
+- Class: .escaped
+- Animation: Bounce
+  - 0%: translateY(0)
+  - 100%: translateY(-10px)
+  - Duration: 1s infinite alternate
+
+Hunger Bar:
+- Child element: .animal-hunger
+- Position: Absolute bottom
+- Height: 4px
+- Width: 100%
+- Background: Green (content) → Red (hungry)
+- Border-radius: 2px
+- Transform-origin: Left (scales from left)
+```
+
+**Ride Elements:**
+```
+Element: .ride
+Position: Absolute at specified x,y
+Font-size: 40px
+Z-index: 10
+Filter: Drop-shadow
+Transition: All 0.5s ease
+Cursor: Pointer
+
+Status Bar:
+- Child: .ride-status
+- Position: Absolute bottom
+- Height: 4px
+- Width: 100%
+- Background: Green (operational) → Red (broken)
+- Border-radius: 2px
+
+Broken State:
+- Class: .broken
+- Status bar red
+- Click shows broken message
+```
+
+**Confetti:**
+```
+Element: .confetti
+Position: Absolute (random)
+Size: 10×10px
+Z-index: 20
+Background: Random bright colors
+
+Animation: Fall and spin
+- Random start position (top of screen)
+- Fall to bottom with gravity effect
+- Random rotation
+- Duration: 2-3 seconds
+- Used for major achievements
+```
+
+**Special Effect Animations:**
+```
+Keyframes defined for:
+- special-match: Scale pulse
+- poison-fall: Falling motion
+- lion-roar: Expand and fade
+- elephant-shockwave: Ripple expand
+- tiger-attack: Rotate scale pulse
+- monkey-mayhem: Random movement
+- float-up: Rise and fade
+- blink: Opacity pulse
+```
+
+### 9.5 Debug Panel
+
+**Debug Toggle Button:**
+```
+Position: Fixed (10px right, 240px top)
+Background: rgba(0,0,0,0.7)
+Color: White
+Text: "Show Debug" / "Hide Debug"
+Size: Auto × 30px
+Padding: 5px 10px
+Border: None
+Border-radius: 5px
+Cursor: Pointer
+Z-index: 11
+```
+
+**Debug Panel:**
+```
+Container: .debug-panel
+Position: Fixed (10px right, 240px top, below toggle)
+Size: 300px × 200px
+Max-height: 200px
+Overflow-y: Auto
+Background: rgba(0,0,0,0.8)
+Font: Monospace, 12px
+Color: Lime green
+Z-index: 10
+Initial display: None
+
+Content:
+- Array of debug entries (up to 50 stored)
+- Each entry: timestamp + message
+- Newest first
+
+Entry Format:
+- Class: .debug-entry
+- Border-bottom: 1px solid rgba(255,255,255,0.2)
+- Padding-bottom: 5px
+- Margin-bottom: 5px
+
+Example Entries:
+- "[14:23:45] Die landed in column 3 with face 🍕"
+- "[14:23:50] Match of 2 🍕 tiles"
+- "[14:23:52] Store cleared of zombies!"
+```
+
+**Debug Logging System:**
+```
+Function: addDebugEntry(message)
+Process:
+1. Create entry object with timestamp
+2. Add to beginning of debugEntries array
+3. Limit array to 50 entries (pop oldest)
+4. If debug enabled, update panel display
+5. Console.log the entry
+
+Usage:
+- Called throughout game for key events
+- Helps track game state changes
+- Useful for testing and debugging
+```
+
+---
+
+## 10. VISUAL EFFECTS & ANIMATION
+
+### 10.1 Dice Animations
+
+**Tumbling Effect:**
+```
+During Fall:
+- Transform: rotateX(random) rotateY(random) rotateZ(random)
+- Interval: 150ms
+- Updates continuously until settling
+- Creates realistic tumbling appearance
+
+Face Changes:
+- Current face index updated randomly
+- Rotation applied to dice-inner element
+- Smooth transitions (0.1s linear)
+```
+
+**Landing Animation:**
+```
+On Settle:
+1. Stop tumbling interval
+2. Freeze rotation at current face
+3. Transition: 0.3s ease
+4. Move to column position
+5. Reset transform for column layout
+
+Position Update:
+- From absolute (x,y) to relative (in column)
+- Left: 0, Top: 0 (relative to column)
+- Stack order: Bottom to top
+```
+
+### 10.2 Match Animations
+
+**Tile Removal:**
+```
+On Match:
+1. Transition: transform 0.3s, opacity 0.3s
+2. Transform: scale(1.2) initially
+3. Hold at scale(1.2) for 0.3s
+4. Transform: scale(0) final
+5. Opacity: 0
+6. Remove from DOM after 0.3s
+```
+
+**Match Indicator:**
+```
+Appearance:
+- Fade in (0s-0.1s)
+- Hold (0.1s-0.9s)
+- Fade out (0.9s-1s)
+
+Position:
+- Basic match: Column center, bottom area
+- Special match: Screen center
+- Multiple matches: Staggered positions
+
+Blink Effect:
+- Opacity alternates 1 ↔ 0.5
+- Frequency: 2Hz
+- Duration: Full 1 second
+```
+
+### 10.3 Special Effect Animations
+
+**Fire Effect:**
+```
+Visual:
+- Red gradient overlay (bottom area)
+- Height: 100px
+- Background: linear-gradient(to top, rgba(255,0,0,0.3), transparent)
+
+Animation:
+- Fade in: 0.5s
+- Hold: 0.5s
+- Fade out: 1s
+- Total duration: 2s
+
+Fire Spread:
+- Fire burst at target column
+- Radial gradient pulse
+- 1s fade animation
+```
+
+**Shockwave Effect:**
+```
+Element: Circular div
+Initial: Small circle (100px)
+Final: Large circle (500-1000px)
+Border: 3-5px solid white
+Box-shadow: Glow effect
+
+Animation:
+- Scale: 0 → 5-10
+- Opacity: 1 → 0
+- Duration: 1-1.5s
+- Transform-origin: Center
+
+Mega Shockwave:
+- 3 concentric waves
+- Staggered start (0ms, 300ms, 600ms)
+- Larger final scale (10)
+- Longer duration (1.5s)
+```
+
+**Attack Animations:**
+```
+Explosion (💥):
+- Random rotation
+- Scale: 0 → 1.5 → 0
+- Duration: 0.5s
+
+Claw Slashes:
+- Multiple slash emojis (💥)
+- Random positions
+- Random rotation
+- Scale pulse
+- 1s duration
+
+Light Flash:
+- Full-screen overlay
+- Colored tint (orange for roar, white for attacks)
+- Opacity: 0 → 0.3 → 0
+- Duration: 2s
+```
+
+### 10.4 UI Animations
+
+**Button Hover:**
+```
+Transform: Scale 1.05
+Transition: 0.2s ease
+Box-shadow: Enhanced glow
+Cursor: Pointer
+```
+
+**Counter Updates:**
+```
+On Value Change:
+- Brief highlight (yellow glow)
+- Scale pulse: 1 → 1.1 → 1
+- Duration: 0.3s
+- Returns to normal
+```
+
+**Panel Transitions:**
+```
+On Show:
+- Opacity: 0 → 1
+- Transform: translateY(-20px) → translateY(0)
+- Duration: 0.3s ease
+
+On Hide:
+- Opacity: 1 → 0
+- Transform: scale(1) → scale(0.9)
+- Duration: 0.2s ease
+```
+
+### 10.5 Physics Animations
+
+**Dice Bounce:**
+```
+Handled by Matter.js:
+- Restitution: 0.6 (60% energy retained)
+- Multiple bounces before settling
+- Natural deceleration
+- Rotation from angular velocity
+```
+
+**Peg Collisions:**
+```
+High restitution: 0.8
+Low friction: 0.005
+Result: Pinball-like bounces
+- Quick direction changes
+- Smooth deflections
+- Maintains energy
+```
+
+**Gravity Effect:**
+```
+Constant: y = 0.5
+Natural falling speed
+Accelerates gradually
+Balanced for playability
+- Not too fast (allows viewing)
+- Not too slow (maintains pace)
+```
+
+**Physics World:**
+- Engine with configurable gravity (x: 0, y: 0.5)
+- Static boundary bodies (ground, left wall, right wall)
+- Dynamic dice bodies with restitution and friction
+- Static peg and wall bodies for level obstacles
+- Mouse constraint for interactive physics
+
+### 1.3 Core Game Loop
+
+1. **Physics Update Cycle** (Matter.js 'afterUpdate' event)
+   - Update dice positions from physics bodies
+   - Update dice visual rotations
+   - Check for dice settling in columns
+   - Trigger match detection when dice land
+
+2. **Column Management**
+   - Track dice in 7 vertical columns
+   - Enable column selection and swapping
+   - Process matches after swaps or dice placement
+   - Update visual representations
+
+3. **Match Processing**
+   - Scan for vertical matches (same column, 2+ consecutive)
+   - Scan for horizontal matches (adjacent columns, top tiles)
+   - Execute match effects based on emoji type
+   - Remove matched dice with animations
+   - Award points and resources
+   - Check for cascading matches
+
+4. **Resource Updates**
+   - Update all counters (score, zombies, humans, etc.)
+   - Update dice pool availability
+   - Update UI displays
+   - Check win/loss conditions
+
+---
+
+## 2. CORE GAME SYSTEMS
+
+### 2.1 Dice Pool System
+
+**Central Resource Management:**
+- Each dice type exists in a limited pool
+- Pool counts displayed in "Dice Bag" UI (top-right)
+- Dice consumed when dropped or created during searches
+- Dice added through matches, store clearing, and bonuses
+
+**Dice Types & Starting Counts:**
+- Mall Dice: 20 (general purpose, lobby)
+- Food Court Dice: 15 (food store themed)
+- Arcade Dice: 15 (arcade store themed)
+- Clothing Store Dice: 15 (clothing store themed)
+- Zoo Dice: 15 (zoo themed)
+- Theme Park Dice: 15 (theme park themed)
+- Zombie Dice: 0 (created during gameplay)
+
+**Dice Acquisition:**
+- Basic match (2 tiles): +1 dice of current level type
+- Money match: +3 dice
+- Special match (3+ tiles): +5 dice
+- Store clearing: +5 themed dice
+- Human searches: Places existing dice from pool
+
+### 2.2 Column & Grid System
+
+**7-Column Layout:**
+- Screen divided into 7 vertical columns
+- Each column can hold up to 8 dice
+- Visual column matcher at bottom 300px of screen
+- Dashed borders separate columns
+
+**Column Interactions:**
+- Click column to select (highlighted)
+- Click adjacent column to swap top dice
+- Click same column to deselect
+- Click non-adjacent to change selection
+- Swapped dice faces exchange, bodies remain in original columns
+
+**Column State Persistence:**
+- Each level saves its column state when exiting
+- State restored when returning to level
+- Allows strategic planning across multiple locations
+
+### 2.3 Match Detection System
+
+**Vertical Matching (Within Column):**
+```
+Algorithm:
+1. For each column, scan bottom to top
+2. Compare adjacent dice emojis
+3. If match found, continue scanning for longer match
+4. Record match with all positions
+5. Skip already-matched indices
+```
+
+**Horizontal Matching (Across Columns):**
+```
+Algorithm:
+1. For each column, get top dice
+2. Compare with adjacent column's top dice
+3. If match, continue checking next column
+4. Record all matching positions
+5. Process match-3+ as special match
+```
+
+**Match Types:**
+- Match-2 (Basic): 2 identical tiles → standard effect
+- Match-3+ (Super): 3+ identical tiles → enhanced effect
+- Vertical matches: within same column
+- Horizontal matches: across adjacent columns
+
+### 2.4 State Persistence System
+
+**Level State Saving:**
+```
+Function: saveColumnState(levelName)
+- Extracts dice emoji and properties (not DOM elements)
+- Converts to JSON-serializable format
+- Stores in gameState.levelColumnStates[levelName]
+```
+
+**Level State Restoration:**
+```
+Function: restoreColumnState(levelName)
+- Retrieves saved state from storage
+- Clears current columns
+- Recreates dice DOM elements
+- Rebuilds column stacks
+- Restores zombie health bars
+- Reattaches event listeners
+```
+
+---
+
+## 3. PHYSICS & DICE MECHANICS
+
+### 3.1 Dice Physics Properties
+
+**Physical Attributes:**
+- Size: 40x40 pixels
+- Restitution (bounciness): 0.6
+- Friction: 0.01
+- Air Friction: 0.01
+- Shape: Rectangle body with rounded corners
+
+**Gravity & Motion:**
+- Gravity: y-axis 0.5 (moderate fall speed)
+- Initial spawn: x-position varies, y-position 50px
+- Velocity check for settling: < 0.1 on y-axis
+- Settling threshold: y > window height - 350
+
+### 3.2 Dice Face Randomization
+
+**Face Mechanics:**
+- 6 faces per die (cube representation)
+- Each face shows different emoji from set
+- Faces positioned in 3D space (translateZ: 20px)
+- Transform rotations: 0°, 90°, 180°, -90° (sides), ±90° (top/bottom)
+
+**Randomization During Fall:**
+```
+Interval: 150ms while dice is in motion
+Process:
+1. Generate random rotation values (0-360° on x, y, z)
+2. Apply transform to dice inner element
+3. Update current face index
+4. Stop when dice settles in column
+```
+
+**Face Color Assignment:**
+```
+Colors based on emoji type:
+- Zombies (🧟‍♂️/🧟‍♀️/💀): #a8e890 (green)
+- Humans (👨/👩): #ffedd8 (light peach)
+- Fire (🔥): #ff9999 (red)
+- Animals: #f5e6b6 (light beige)
+- Theme Park: #ffccfa (light pink)
+- Default: #f0f0f0 (light gray)
+```
+
+### 3.3 Peg System
+
+**Peg Layout Generation:**
+```
+Algorithm (setupLevelPhysics):
+1. Divide screen into 7 column lanes
+2. For each column, create peg columns on sides
+3. Avoid placing pegs in lane centers (keep clear path)
+4. Alternate left/right pegs in zigzag pattern
+5. Add random pegs outside lane centers
+6. Check distance from lane center > 20% of column width
+```
+
+**Peg Types by Level:**
+- Lobby: Circle (20px diameter, blue)
+- Food Court: Square (20px, red)
+- Arcade: Diamond (20px, cyan, rotated 45°)
+- Clothing: Square (20px, pink, rotated 45°)
+- Zoo: Pentagon (custom clip-path, teal)
+- Theme Park: Star (custom clip-path, orange)
+
+**Peg Physics:**
+- Static bodies (non-movable)
+- High restitution: 0.8 (bouncy)
+- Low friction: 0.005 (smooth bounces)
+- Visible: false in physics render (DOM handles visuals)
+
+### 3.4 Wall System
+
+**Wall Properties:**
+- Static rectangular bodies
+- Custom dimensions per level
+- Themed colors matching level aesthetics
+- Create obstacles and guide paths
+
+**Wall Placement Examples:**
+- Food Court: Horizontal bar at top (200x400px)
+- Arcade: Vertical walls on sides (20x200px each)
+- Clothing: Multiple horizontal platforms
+- Zoo: Cage structure with break in barrier
+- Theme Park: Ride track patterns
+
+---
+
+## 4. MATCH MECHANICS & SCORING
+
+### 4.1 Match Effects by Emoji Type
+
+**HUMAN TILES (👨/👩):**
+
+Basic Match (2 tiles):
+- In Lobby: +1 human to count, +5 points
+- In Stores: Triggers search action
+- Search places new dice from pool into columns
+
+Super Match (3+ tiles):
+- In Lobby: Add multiple humans (one per tile), +15 points
+- In Stores: Multiple search actions (count-1 searches)
+- Enhanced resource acquisition
+
+**ZOMBIE TILES (🧟‍♂️/🧟‍♀️):**
+
+Basic Match (2 tiles):
+- Remove 1 zombie from global and store count
+- +15 points
+- Visual removal animation
+
+Super Match (3+ tiles):
+- Remove multiple zombies (one per tile matched)
+- +30 points
+- Chain removal animations
+
+**BOSS ZOMBIE (💀):**
+
+Basic Match (2 tiles):
+- Remove 3 zombies from counts
+- +50 points
+- Powerful clearing effect
+
+Super Match (3+ tiles):
+- Remove 5+ zombies
+- +50+ points (scales with match length)
+- Screen-wide clearing effects
+
+**FIRE TILES (🔥):**
+
+Basic Match (2 tiles):
+- Creates fire visual effect
+- Starts fire spread timer (3 seconds)
+- Adds fire tile to random column after delay
+
+Super Match (3+ tiles):
+- Creates multiple fires
+- Multiple fire spread timers
+- Can trigger chain reactions
+
+**MONEY TILES (💰/💳):**
+
+Basic Match (2 tiles):
+- Add 3 dice to current level's pool
+- +25 points
+- Visual money collection effect
+
+Super Match (3+ tiles):
+- Add 8+ dice to pool
+- +25 points per tile
+- Jackpot visual effect
+
+**BONUS BASKET (🧺):**
+
+Basic Match (2 tiles):
+- Random small bonus: +1 human OR +1 dice OR +50 score
+- +30 points
+
+Super Match (3+ tiles):
+- Mega bonus: +3 humans, +5 dice, -3 zombies, +250 score
+- Confetti and celebration effects
+
+### 4.2 Zoo Animal Effects
+
+**TIGER (🐅):**
+
+Basic Match (2 tiles):
+- Clears zombies in small radius (2 tiles)
+- +20 points
+- Visual claw slash effects
+
+Super Match (3+ tiles):
+- Clears ALL zombies from board
+- +50 points
+- Massive attack animation with multiple slashes
+- Screen shake effect
+
+**LION (🦁):**
+
+Basic Match (2 tiles):
+- Scares away 1 random zombie
+- +15 points
+- Roar visual effect
+
+Super Match (3+ tiles):
+- Scares ALL zombies away
+- +45 points
+- "MIGHTY ROAR" screen-wide effect
+- Orange lighting overlay
+
+**ELEPHANT (🐘):**
+
+Basic Match (2 tiles):
+- Creates shockwave effect (visual)
+- +15 points
+- Concentric wave animation
+
+Super Match (3+ tiles):
+- Creates mega shockwave
+- +40 points
+- Multiple concentric waves
+- Affects larger area
+
+**SNAKE (🐍):**
+
+Basic Match (2 tiles):
+- Adds 1 poison tile (☣️) to random column
+- +10 points
+- Poison tile has negative effects when matched
+
+Super Match (3+ tiles):
+- Adds multiple poison tiles (one per tile matched)
+- +30 points
+- Spreads poison across board
+
+**GIRAFFE (🦒):**
+
+Basic Match (2 tiles):
+- Shows hint for one potential match
+- Highlights columns with matching top tiles
+- +10 points
+- 3-second highlight duration
+
+Super Match (3+ tiles):
+- Reveals ALL potential matches on board
+- Highlights all match opportunities
+- +35 points
+- 5-second highlight duration
+
+**MONKEY (🐒):**
+
+Basic Match (2 tiles):
+- Steals 1 random tile from board
+- Removed tile animated to disappear
+- +10 points
+
+Super Match (3+ tiles):
+- Shuffles ALL tiles on board
+- Reorganizes entire board layout
+- +35 points
+- "Monkey Business!" animation
+
+### 4.3 Theme Park Ride Effects
+
+**FERRIS WHEEL (🎡):**
+
+Basic Match (2 tiles):
+- Shows board overview view
+- +10 points
+- Highlights potential matches
+
+Super Match (3+ tiles):
+- Rotates entire board 90 degrees
+- +40 points
+- All dice reposition with rotation animation
+
+**ROLLER COASTER (🎢):**
+
+Basic Match (2 tiles):
+- Clears one row or column (random selection)
+- +15 points
+- Track animation along cleared path
+
+Super Match (3+ tiles):
+- Clears multiple paths (one per tile matched)
+- +35 points
+- Multiple track animations
+
+**CIRCUS TENT (🎪):**
+
+Basic Match (2 tiles):
+- Adds 1 special bonus tile to board
+- +10 points
+- Bonus tile has enhanced effects
+
+Super Match (3+ tiles):
+- Adds multiple special tiles
+- +30 points
+- Creates combo opportunities
+
+**CAROUSEL (🎠):**
+
+Basic Match (2 tiles):
+- Swaps 2 random tiles on board
+- +10 points
+- Spinning animation
+
+Super Match (3+ tiles):
+- Spins entire board (shuffles tiles in rotating pattern)
+- +35 points
+- Carousel rotation visual effect
+
+**PERFORMER (🎭):**
+
+Basic Match (2 tiles):
+- Transforms 1 random tile to different emoji
+- +10 points
+- Magic sparkle effect
+
+Super Match (3+ tiles):
+- Transforms multiple tiles (one per tile matched)
+- +30 points
+- Stage show visual effect
+
+**TICKET (🎟️):**
+
+Basic Match (2 tiles):
+- Adds tickets equal to match length
+- +10 points
+- Ticket collection animation
+
+Super Match (3+ tiles):
+- Adds double tickets (2 per tile matched)
+- +30 points
+- Jackpot ticket animation
+
+### 4.4 Scoring System
+
+**Point Values:**
+```
+Basic Matches:
+- Standard match: 10 × match_length
+- Human match: 5 points
+- Zombie match: 15 points
+- Boss zombie: 50 points
+- Money match: 25 points
+- Animal matches: 10-20 points
+- Ride matches: 10-15 points
+
+Special Matches (3+):
+- Base points: 20 × match_length
+- Zombie special: +30 points
+- Boss zombie special: +50 points
+- Animal specials: +30-50 points
+- Ride specials: +30-40 points
+```
+
+**Score Accumulation:**
+- Score never decreases
+- Displayed in top-left UI panel
+- Updated after each match resolution
+- No score-based win condition (focus on objectives)
+
+---
+
+## 5. RESOURCE MANAGEMENT SYSTEMS
+
+### 5.1 Human Resource System
+
+**Starting Values:**
+- Adults: 10
+- Babies: 3
+- Parents in queue: 0
+
+**Human Uses:**
+
+1. **Search Actions** (Store Levels)
+   - Cost: 1 human (temporary, not consumed)
+   - Effect: Triggers search in current store
+   - Search adds 1-3 themed dice to random columns
+   - 20% chance for human tiles
+   - 10% chance for money tiles
+   - 70% chance for themed items
+
+2. **Baby-Making** (Lobby Only)
+   - Cost: 2 humans (temporary removal)
+   - Effect: +1 baby immediately
+   - Parents stored in parentsDice array
+   - Parents returned after clearing any store
+
+3. **Zoo Actions**
+   - Capture escaped animals (cost: 1 human per capture)
+   - Feed animals (requires food dice, not humans)
+
+4. **Theme Park Actions**
+   - Purchase tickets (cost: 1 human per transaction)
+   - Fix broken rides (cost: 1 human per repair)
+
+**Human Acquisition:**
+- Matching human tiles (👨/👩)
+- Babies growing into adults (requires shelters)
+- Bonus effects from special matches
+- Store clearing rewards
+
+### 5.2 Baby & Parent System
+
+**Baby-Making Mechanics:**
+```
+Process:
+1. Player clicks "Make Baby" button
+2. Verify humans >= 2
+3. Deduct 2 from human count
+4. Add 2 parent identifiers to parentsDice[]
+5. Increment babies by 1
+6. Display animation: "👨 + 👩 = 👶"
+7. If shelters > 0, start 30-second timer for growth
+```
+
+**Baby Growth:**
+- Requires: shelters > 0
+- Time: 30 seconds per baby
+- Process: Baby automatically converts to adult
+- No growth if no shelters exist
+
+**Parent Return:**
+```
+Trigger: Any store cleared of zombies
+Process:
+1. Count parents in parentsDice[]
+2. Add count to humans
+3. Clear parentsDice[]
+4. Display return notification
+```
+
+### 5.3 Zombie Resource System
+
+**Global Zombie Count:**
+- Starting: 5 zombies
+- Tracks total zombies across all areas
+- Displayed in main UI
+
+**Per-Store Zombie Tracking:**
+```
+zombiesPerStore = {
+    food: 0,
+    arcade: 0,
+    clothing: 0,
+    zoo: 0,
+    themepark: 0
+}
+```
+
+**Zombie Types & Health:**
+- Regular Zombie (🧟‍♂️/🧟‍♀️): 2 HP
+- Boss Zombie (💀): 5 HP
+- Health displayed as colored bar under tile
+- Green bar: full health
+- Red bar: low health
+
+**Zombie Spawning:**
+- New stores pre-populated with themed dice including zombies
+- Fire spread can create zombie tiles
+- No continuous spawning (fixed count per store)
+
+**Zombie Elimination:**
+- Match zombie tiles to damage adjacent zombies
+- Each match deals 1 damage
+- Zombies removed when HP reaches 0
+- Decrement global and store counts
+- Check for store cleared condition
+
+### 5.4 Dice Pool Economy
+
+**Pool Management:**
+```
+Inflow:
++ Basic matches: 1 dice per match
++ Money matches: 3 dice
++ Super matches: 5 dice
++ Store clearing: 5 themed dice
++ Bonus effects: variable
+
+Outflow:
+- Dropping dice: 1 per drop
+- Human searches: places dice from pool
+- Animal feeding: 1 food dice per feed
+```
+
+**Pool Visibility:**
+- "Available Dice" panel (top-right)
+- Shows count per dice type
+- Visual emoji representation
+- Real-time updates
+
+**Pool Constraints:**
+- Cannot drop dice if pool empty for that type
+- Search actions fail if no dice in pool
+- UI elements disabled when pool depleted
+
+### 5.5 Shelter System (Framework)
+
+**Current Implementation:**
+- Counter exists in UI
+- Starting value: 0
+- No building mechanic implemented
+- Affects baby growth timer
+
+**Planned Functionality:**
+- Build shelters using resources
+- Shelters enable baby growth
+- Protect humans from zombie attacks
+- Provide score bonuses
+
+---
+
+## 6. LOCATION & LEVEL DESIGN
+
+### 6.1 Level Configurations
+
+**THE LOBBY (Hub)**
+
+Theme: Central shopping mall area
+Background Color: #3a4a5c (blue-gray)
+
+Pegs (7 total):
+- Blue circles (20px diameter)
+- Positioned: (200,200), (300,250), (400,200), (500,250), (250,350), (350,300), (450,350)
+- Create scattered pattern for varied dice paths
+
+Walls: None
+
+Special Features:
+- Dice stack visible (bottom center)
+- Make Baby button active
+- Access to all store levels
+- No zombies spawn here
+- Safe planning area
+
+Emoji Set: Mall themed
+- 🛍️ Shopping bag
+- 🛒 Shopping cart
+- 💰 Money bag
+- 💳 Credit card
+- 👨 Man
+- 👩 Woman
+
+**FOOD COURT**
+
+Theme: Restaurant and dining area
+Background Color: #5c3a3a (reddish-brown)
+
+Pegs (9 total):
+- Red squares (20px)
+- Layout: 5 top row (y:200), 4 middle row (y:300)
+- Positions: (150,200), (250,200), (350,200), (450,200), (550,200), (200,300), (300,300), (400,300), (500,300)
+
+Walls:
+- Horizontal barrier: (200, 150, 400, 20) - top obstacle
+
+Special Features:
+- Pre-populated with food dice and zombies
+- Search yields food-themed items
+- Red themed obstacles
+
+Emoji Set: Food themed
+- 🍕 Pizza
+- 🍔 Burger
+- 🍟 Fries
+- 🥤 Drink
+- 🧟‍♂️ Zombie
+- 👨 Man
+
+**ARCADE**
+
+Theme: Gaming and entertainment area
+Background Color: #3a5c3a (green)
+
+Pegs (11 total):
+- Blue diamonds (20px, rotated 45°)
+- Three rows: top (y:150, 4 pegs), middle (y:250, 3 pegs), bottom (y:350, 4 pegs)
+
+Walls:
+- Left wall: (100, 250, 20, 200)
+- Right wall: (580, 250, 20, 200)
+- Create narrow channel effect
+
+Special Features:
+- Side walls funnel dice to center
+- Game-themed obstacles
+- Higher peg density
+
+Emoji Set: Arcade themed
+- 🎮 Game controller
+- 🎰 Slot machine
+- 🎯 Dartboard
+- 🎪 Circus tent
+- 🧟‍♀️ Zombie woman
+- 👩 Woman
+
+**CLOTHING STORE**
+
+Theme: Fashion retail area
+Background Color: #3a3a5c (purple-blue)
+
+Pegs (9 total):
+- Pink squares (20px, rotated 45°)
+- Alternating pattern: rows at y:150, 200, 300, 350
+
+Walls:
+- Top platform: (300, 100, 100, 20)
+- Middle left: (200, 200, 100, 20)
+- Middle right: (400, 200, 100, 20)
+- Creates shelf-like obstacles
+
+Special Features:
+- Platform jumping pattern
+- Fashion-themed aesthetics
+- Diamond-shaped pegs
+
+Emoji Set: Clothing themed
+- 👗 Dress
+- 👚 Shirt
+- 👖 Jeans
+- 👠 High heel
+- 🧟‍♂️ Zombie
+- 👨 Man
+
+**ZOO**
+
+Theme: Wildlife exhibit area
+Background Color: #2a623d (forest green)
+
+Pegs (8 total):
+- Pentagons (custom clip-path, teal)
+- Cage pattern: corners and edges
+- Positions create pen-like structure
+
+Walls (Cage Structure):
+- Left cage: (200, 200, 20, 200)
+- Right cage: (500, 200, 20, 200)
+- Top bar: (350, 100, 300, 20)
+- Bottom bar: (350, 400, 300, 20)
+- Broken section: (300, 250, 50, 20) - escape route
+
+Special Features:
+- Animal hunger system active
+- Escape mechanics enabled
+- Feeding button appears
+- Cage visual design
+
+Emoji Set: Animal themed
+- 🐅 Tiger
+- 🐘 Elephant
+- 🐍 Snake
+- 🦒 Giraffe
+- 🦁 Lion
+- 🐒 Monkey
+
+**THEME PARK**
+
+Theme: Amusement park rides area
+Background Color: #4a3c7d (festive purple)
+
+Pegs (9 total):
+- Stars (custom clip-path, orange)
+- Carousel pattern: center cluster + corner positions
+
+Walls (Ride Tracks):
+- Left track: (200, 200, 100, 10)
+- Right track: (500, 200, 100, 10)
+- Bottom track: (350, 350, 400, 10)
+- Create ride path visual
+
+Special Features:
+- Ticket counter visible
+- Ride elements displayed
+- Maintenance system active
+- Festive atmosphere
+
+Emoji Set: Theme park themed
+- 🎡 Ferris wheel
+- 🎢 Roller coaster
+- 🎪 Circus tent
+- 🎠 Carousel
+- 🎭 Theater masks
+- 🎟️ Admission ticket
+
+### 6.2 Level Navigation
+
+**Level Selector:**
+- Located at bottom of screen
+- Buttons for each accessible level
+- Active level highlighted
+- State saves when switching
+- State restores when returning
+
+**Level Unlocking:**
+- All levels available from start
+- No progressive unlocking currently
+- Zoo and Theme Park added dynamically on first load
+
+### 6.3 Level-Specific UI
+
+**Lobby UI:**
+- Dice stack display (bottom center)
+- Make Baby button (top-left panel)
+- Full resource display
+- No store-specific panels
+
+**Store UI:**
+- Store name label (top center)
+- Store info panel (top-left, secondary position)
+  - Store zombie count
+  - Available dice count
+  - Send Human to Search button
+- Store Cleared indicator (when applicable)
+- Hidden dice stack
+
+**Zoo UI:**
+- Animal info panel
+  - Animals in cages count
+  - Escaped animals count
+  - Feed Animals button (costs food dice)
+
+**Theme Park UI:**
+- Ticket counter (top-left, below resources)
+  - Ticket emoji 🎟️
+  - Current ticket count
+- Ticket shop element (clickable booth)
+- Ride status indicators on each ride
+
+---
+
+## 7. CHARACTER SYSTEMS
+
+### 7.1 Human Character Mechanics
+
+**Visual Representation:**
+- Emoji: 👨 (man) or 👩 (woman)
+- Appear as dice faces
+- Color: #ffedd8 (light peach background)
+- No special animations beyond standard dice
+
+**Behavior:**
+- Passive resource (player-controlled)
+- No autonomous movement
+- Used via player actions (buttons, matches)
+
+**Human Tiles in Gameplay:**
+- Can be matched like other dice
+- Matching humans in lobby adds to count
+- Matching humans in stores triggers searches
+- Humans on board are separate from human count
+
+### 7.2 Baby System
+
+**Visual Representation:**
+- Tracked in UI counter only
+- No board representation
+- Icon: 👶
+
+**Baby States:**
+- New (just created): Start 30-second timer if shelters > 0
+- Growing: Timer counting down
+- Mature: Converts to adult automatically
+
+**Growth Mechanics:**
+```
+Growth Requirements:
+- Shelters must be > 0
+- Time: 30 seconds
+- Automatic conversion
+
+Growth Process:
+1. Timer completes
+2. babies count decrements
+3. humans count increments
+4. UI updates
+5. Log entry created
+```
+
+### 7.3 Zombie Character Mechanics
+
+**Visual Representation:**
+- Regular: 🧟‍♂️ (zombie man) or 🧟‍♀️ (zombie woman)
+- Boss: 💀 (skull)
+- Color: #a8e890 (pale green background)
+
+**Health System:**
+```
+Regular Zombies:
+- Starting HP: 2
+- Health bar under tile (green when full, red when low)
+- Visual health indicator width = HP / max_HP
+
+Boss Zombies:
+- Starting HP: 5
+- Larger health bar
+- More resistant to matches
+- Higher point value
+```
+
+**Health Modification:**
+```
+Function: setZombieHealth(element, health)
+1. Create health bar div
+2. Append to zombie element
+3. Store HP in element.dataset
+4. Update bar width based on current/max ratio
+5. Color: green (HP > 50%), red (HP <= 50%)
+```
+
+**Damage Mechanics:**
+- Matching tiles adjacent to zombies deals damage
+- Each match = 1 damage point
+- Zombie removed when HP reaches 0
+- Multiple matches can chain damage
+
+**Zombie Behavior:**
+- Static on board (no movement)
+- No autonomous actions
+- Affected by animal attacks (zoo level)
+- Can be cleared by special effects
+
+### 7.4 Animal Character System (Zoo)
+
+**Animal Hunger Mechanics:**
+
+```
+Hunger System:
+- Each animal has hunger value (1-10)
+- Hunger increases every 10 seconds
+- Visual hunger bar under animal tile
+- Bar color: green (low hunger) → orange (medium) → red (high)
+- Bar width scales with hunger level
+
+Hunger States:
+- 1-4: Content (green bar)
+- 5-7: Hungry (orange bar)
+- 8-10: Aggressive (red bar, animal attacks)
+```
+
+**Aggressive Behavior by Animal:**
+```
+When hunger >= 8:
+- Tiger/Lion: Attacks adjacent tiles (humans/zombies)
+- Elephant: Creates shockwave
+- Snake: Adds poison tiles
+- Monkey: Steals random tiles
+- Giraffe: No aggressive action (passive)
+```
+
+**Animal Feeding:**
+```
+Function: feedAnimals()
+Cost: 1 food dice from pool
+Effect: Reset ALL animals' hunger to 1
+Visual: Food elements falling animation
+Duration: Prevents aggression for ~100 seconds
+```
+
+**Animal Escape System:**
+
+```
+Escape Mechanics:
+- 10% chance every 10 seconds (during zoo behavior interval)
+- Escaped animals:
+  - Increment gameState.animalCount.escaped
+  - Decrement gameState.animalCount.zoo
+  - Visual: Bounce animation outside columns
+  - Require human to capture
+
+Capture Process:
+- Click escaped animal
+- Requires 1 human
+- Returns animal to cage
+- Decrement escaped count
+```
+
+**Animal Tile Properties:**
+```
+Each animal tile stores:
+- emoji: animal type
+- hunger: current hunger level (1-10)
+- maxHealth: species-specific value
+- Element contains hunger bar div
+```
+
+### 7.5 Theme Park Ride System
+
+**Ride Structure:**
+```
+Each ride has:
+- id: unique identifier (e.g., 'ferrisWheel')
+- element: DOM element reference
+- emoji: visual representation
+- position: x, y coordinates
+- status: 'operational' or 'broken'
+- maintenance: value 0-100 (percentage)
+- lastFixTime: timestamp of last repair
+```
+
+**Four Rides:**
+
+1. **Ferris Wheel (🎡)**
+   - Position: 25% screen width, y:150
+   - Effect: Board overview / match hints
+
+2. **Roller Coaster (🎢)**
+   - Position: 45% screen width, y:200
+   - Effect: Clears row/column
+
+3. **Carousel (🎠)**
+   - Position: 65% screen width, y:150
+   - Effect: Swaps tiles
+
+4. **Teacups (☕)**
+   - Position: 85% screen width, y:180
+   - Effect: Transforms tiles
+
+**Maintenance System:**
+```
+Maintenance Degradation:
+- Decreases over time (every 15 seconds)
+- Rate: -5 to -15 per interval (random)
+- Visual status bar shows percentage
+- Color: green (>70%) → orange (40-70%) → red (<40%)
+
+Breakdown Chance:
+- Based on maintenance level
+- High maintenance: low chance
+- Low maintenance: high chance
+- Broken rides unusable until repaired
+
+Repair Process:
+- Cost: 1 human
+- Click broken ride
+- Maintenance restored to 100%
+- Status changed to 'operational'
+- Visual update: red → green
+```
+
+**Ride Usage:**
+```
+Using a Ride:
+1. Verify ride operational
+2. Check ticket count >= 1
+3. Deduct 1 ticket
+4. Trigger ride effect
+5. Show ride animation
+6. Update displays
+```
+
+---
+
+## 8. SPECIAL MECHANICS BY LOCATION
+
+### 8.1 Zoo Special Mechanics
+
+**Animal Management Loop:**
+```
+Function: startAnimalBehavior()
+Interval: 10 seconds
+Actions per tick:
+1. updateAnimalHunger() - increment all hunger values
+2. Random escape check (10% chance)
+3. Check for aggressive behaviors
+4. Update visual indicators
+```
+
+**Feeding System:**
+```
+Prerequisites:
+- Food dice in pool >= 1
+- Animals present in zoo
+
+Process:
+1. Player clicks "Feed Animals" button
+2. Deduct 1 from food dice pool
+3. Reset all animal hunger to 1
+4. Update all hunger bars to green
+5. Show feeding animation
+6. Log: "Animals have been fed!"
+
+Visual Effect:
+- 5 food emojis (🥩,🍖,🦴,🥕,🍎) appear randomly
+- Animated fall and fade
+- Text: "🦒 Animals Fed! 🦁"
+- 1-second animation duration
+```
+
+**Escape Management:**
+```
+Escape Trigger:
+- 10% chance per behavior tick
+- Random animal selected from board
+
+Escaped Animal:
+- Removed from column/board
+- Added to escaped count
+- DOM element created outside grid
+- Bounce animation applied
+- Click to capture
+
+Capture:
+- Cost: 1 human
+- Returns animal to board
+- Adds back to zoo count
+- Removes escaped element
+```
+
+**Animal Special Attacks (When Hungry):**
+
+```
+Tiger/Lion Attack:
+Function: attackAdjacentTile(columnIndex)
+1. Target adjacent columns (left, right, same)
+2. Find human or zombie tile
+3. Remove tile with animation
+4. Update resource counts
+5. Show attack effect (💥)
+
+Elephant Shockwave:
+Function: createElephantShockwave()
+1. Create circular wave element
+2. Expand from center
+3. Visual effect only (no tile damage)
+4. "🐘 TRUMPET!" text display
+
+Snake Poison:
+Function: addPoisonTile()
+1. Find empty column space
+2. Add ☣️ poison tile
+3. Poison tile has negative effects
+4. Green color (#adff2f)
+
+Monkey Steal:
+Function: stealRandomTile()
+1. Select random non-empty column
+2. Remove top tile
+3. Animate tile disappearing
+4. No resource added (lost)
+```
+
+### 8.2 Theme Park Special Mechanics
+
+**Ticket Economy:**
+
+```
+Ticket Acquisition:
+- Match ticket emoji (🎟️): +1 per tile
+- Super match tickets: +2 per tile
+- Purchase at ticket booth: cost 1 human, gain 3 tickets
+- Daily free tickets: 5 tickets per day
+
+Ticket Usage:
+- Ride usage: 1 ticket per ride
+- No other uses currently
+
+Ticket Display:
+- Counter: top-left, below main resources
+- Emoji: 🎟️
+- Count: numeric value
+- Real-time updates
+```
+
+**Ride Maintenance Loop:**
+```
+Function: startRideMaintenance()
+Interval: 15 seconds
+Actions per tick:
+1. Decrease maintenance for all rides
+2. Check for breakdown triggers
+3. Update status bars
+4. Update ride availability
+
+Maintenance Decrease:
+- Random: -5 to -15 per interval
+- Faster degradation = more rides used
+- No maintenance if ride unused
+
+Breakdown:
+- Chance increases as maintenance decreases
+- Broken ride: status bar turns red
+- Ride class: 'broken' added
+- Click shows "🛑 Ride Broken!" message
+```
+
+**Ticket Booth:**
+```
+Element: ticket-shop div
+Visual: 🎟️ emoji, 80x80px box
+Position: (80, 150)
+Hover: Scale 1.1
+
+Interaction:
+1. Player clicks booth
+2. Check humans >= 1
+3. Deduct 1 human
+4. Add 3 tickets
+5. Show purchase animation
+6. Update displays
+```
+
+**Daily Ticket System:**
+```
+Flag: gameState.dailyTicketsClaimed
+Trigger: First visit to theme park per session
+Amount: 5 free tickets
+Reset: Would need localStorage for true daily (not implemented)
+
+Function: offerDailyTickets()
+1. Check if already claimed
+2. If not, add 5 tickets
+3. Set flag to true
+4. Show notification
+```
+
+### 8.3 Fire Spread System
+
+**Fire Creation:**
+```
+Trigger: Matching fire emoji (🔥)
+Function: createFireEffect()
+
+Visual Effect:
+1. Create div with red gradient
+2. Position at bottom-above-columns (300px from bottom)
+3. Fade in (0.5s)
+4. Fade out (1s)
+5. Remove element
+
+Spread Trigger:
+Function: startFireSpread()
+Timer: 3 seconds after fire match
+```
+
+**Fire Spreading:**
+```
+Process:
+1. Select random column
+2. Check if column has space (< 8 tiles)
+3. Create new fire tile (🔥)
+4. Add to column with animation
+5. Visual effect: Fire burst at column
+
+Properties of Fire Tile:
+- Emoji: 🔥
+- Color: #ff9999 (red)
+- Can be matched like other tiles
+- Matching removes fire but may create new spread
+```
+
+**Fire Chain Reactions:**
+```
+Scenario:
+- Multiple fire tiles created
+- Each fire has independent spread timer
+- Can create fire feedback loops
+- Strategic matching required to control
+```
+
+### 8.4 Poison System
+
+**Poison Tile Creation:**
+```
+Source: Snake matches in zoo
+Function: addPoisonTile()
+
+Process:
+1. Scan for columns with space
+2. Select first available column
+3. Create poison tile (☣️)
+4. Add to column
+5. Show poison fall animation
+
+Tile Properties:
+- Emoji: ☣️ (biohazard)
+- Color: #adff2f (lime green)
+- Special property: isPoison = true
+```
+
+**Poison Effects:**
+```
+When Matched:
+- Removes adjacent tiles (damage effect)
+- No positive resource gain
+- May spread to nearby tiles
+- Visual: Poison cloud effect
+
+Strategic Use:
+- Can clear zombies
+- Can remove unwanted tiles
+- Risky if not controlled
+```
+
+### 8.5 Search System
+
+**Search Mechanics:**
+```
+Trigger: Human match in store levels
+Cost: Dice from current level pool
+Function: triggerHumanSearch()
+
+Search Process:
+1. Define search area (center ± 1-2 columns radius)
+2. For each column in area:
+   - 50% chance to add tile
+   - Check column not full
+   - Check dice in pool
+3. Select emoji:
+   - 20% human (👨/👩)
+   - 10% money (💰/💳)
+   - 70% themed item
+4. Create tile with animation
+5. Add to column
+6. Deduct from dice pool
+
+Results:
+- 0-5 new tiles added (depending on space and dice)
+- Visual: "SEARCH!" indicator
+- If no tiles added: "Search Found Nothing!" message
+```
+
+**Search Animations:**
+```
+Tile Appearance:
+1. Tile created with scale(0)
+2. Transition to scale(1) over 0.3s
+3. Stagger: 50ms delay between tiles
+4. Fall into place in column
+
+Visual Indicator:
+- "SEARCH!" text at center screen
+- 1-second display
+- Yellow color with glow
+```
+
+---
+
+## 9. UI/UX DESIGN
+
+### 9.1 Main UI Panels
+
+**Resource Display (Top-Left):**
+```
+Container: .ui-container
+Size: 180px × auto
+Background: rgba(0,0,0,0.7)
+Border-radius: 8px
+Padding: 10px
+
+Elements:
+- 💯 Score: [value]
+- 🧟‍♂️ Zombies: [value]
+- 👨‍👩‍👧‍👦 Humans: [value]
+- 👶 Babies: [value]
+- 🏠 Shelters: [value]
+
+Layout: Flex, space-between
+Font: Arial, white text
+Updates: Real-time
+```
+
+**Dice Bag (Top-Right):**
+```
+Container: .dice-bag
+Size: 220px × auto
+Background: rgba(0,0,0,0.7)
+Position: Fixed top-right (10px, 10px)
+Z-index: 10
+
+Header: "Available Dice" (bold, 16px, centered)
+
+Dice Groups:
+For each dice type with count > 0:
+  - Container: .dice-group (background: rgba(50,50,50,0.7))
+  - Emoji: Large icon (18px)
+  - Name: Type label (e.g., "Mall Dice")
+  - Count: Number available (bold, right-aligned)
+
+Auto-updates when pool changes
+```
+
+**Dice Stack (Bottom-Center, Lobby Only):**
+```
+Container: .dice-stack
+Position: Fixed bottom, 320px from bottom, centered
+Size: Max 80% screen width
+Background: rgba(0,0,0,0.7)
+Border-radius: 10px
+Padding: 10px
+
+Contents:
+- Dice icons for available types in current level
+- Each icon: 40×40px, clickable
+- Hover effect: Scale 1.1
+- Disabled state: Opacity 0.3 (if pool empty)
+
+Visibility:
+- Display: flex in lobby
+- Hidden in store levels
+- Flex-wrap for multiple dice types
+```
+
+**Level Selector (Bottom-Left):**
+```
+Container: .level-selector
+Position: Fixed bottom-left (10px, 10px)
+Layout: Flex row, gap 10px
+Max-width: 80%
+Z-index: 10
+
+Buttons:
+- One per level
+- Text: Level name
+- Size: Auto width, 30px height
+- Style: Rounded (5px), dark background
+- Active: Lighter background (rgba(255,255,255,0.3))
+- Hover: Cursor pointer
+
+Levels:
+- Lobby (default active)
+- Food Court
+- Arcade
+- Clothing Store
+- Zoo (added dynamically)
+- Theme Park (added dynamically)
+```
+
+### 9.2 Store-Specific UI
+
+**Shop Info Panel (Store Levels):**
+```
+Container: .shop-info
+Position: Fixed (240px from left, 90px from top)
+Size: 200px × auto
+Background: rgba(0,0,0,0.7)
+Z-index: 10
+
+Elements:
+1. Header: "[Store Name] Shop" (bold, 16px, centered)
+2. Zombie Count: "🧟‍♂️ Zombies: [count]"
+3. Dice Count: "🎲 Available: [count]"
+4. Button: "👨 Send Human to Search"
+   - Disabled if humans <= 0
+   - Click triggers search
+
+Updates: When entering store, after actions
+```
+
+**Store Cleared Indicator:**
+```
+Element: .shop-cleared-indicator
+Condition: Displayed when store zombies = 0
+Position: Fixed top-center (70px from top)
+Size: Auto
+Background: rgba(0,255,0,0.3)
+Color: White
+Text: "✓ Store Cleared!"
+Font: Bold
+Padding: 5px 10px
+Border-radius: 5px
+Z-index: 20
+```
+
+**Zoo Animal Info Panel:**
+```
+Container: .animal-info (similar styling to shop-info)
+Position: Below shop info
+
+Elements:
+1. Header: "Zoo Animals" (bold, centered)
+2. "🦒 In Cages: [count]"
+3. "🐅 Escaped: [count]"
+4. Button: "🥩 Feed Animals"
+   - Disabled if food dice <= 0
+   - Click feeds all animals
+
+Visibility: Zoo level only
+```
+
+**Theme Park Ticket Counter:**
+```
+Container: .ticket-counter
+Position: Fixed (10px left, 150px top)
+Size: Auto
+Background: rgba(0,0,0,0.7)
+Layout: Flex row
+Z-index: 10
+
+Elements:
+- Emoji: 🎟️ (24px)
+- Count: [number] (18px, bold)
+- Gap: 10px between elements
+
+Visibility: Theme Park only
+```
+
+### 9.3 Interactive Elements
+
+**Column Matcher:**
+```
+Container: .column-matcher
+Position: Fixed bottom, 0-300px height
+Size: Full width
+Background: rgba(0,0,0,0.2)
+Layout: Flex, space-around
+Z-index: 5
+
+Columns (7):
+- Class: .matcher-column
+- Width: 60px
+- Height: 100%
+- Border: Dashed vertical lines
+- Flex: Column-reverse (stack from bottom)
+- Cursor: Pointer
+
+Selected State:
+- Background: rgba(255,255,255,0.2)
+- Box-shadow: 0 0 10px rgba(255,255,255,0.5)
+
+Interaction:
+- Click to select
+- Click adjacent to swap
+- Click same to deselect
+```
+
+**Dice Elements:**
+```
+Container: .dice
+Size: 40×40px
+Position: Absolute (when falling) or Relative (in column)
+Perspective: 600px (for 3D effect)
+
+Inner: .dice-inner
+- Transform-style: preserve-3d
+- Transition: 0.1s linear
+
+Faces (6): .dice-face
+- Positioned absolute
+- Size: 100%
+- Backface-visibility: hidden
+- Border: 2px solid rgba(255,255,255,0.3)
+- Border-radius: 6px
+- Box-shadow: 0 0 10px rgba(0,0,0,0.5)
+- Transform: Rotated for 3D cube
+
+Face Content:
+- Emoji: 24px font
+- Centered: Flexbox center
+- Background: Dynamic color based on emoji type
+```
+
+**Make Baby Button:**
+```
+Container: #make-baby-btn
+Class: .make-baby-btn
+Position: Inside .ui-container
+Text: "Make Baby (2 Humans)"
+Size: 100% width, auto height
+Padding: 8px
+Background: #4a4a9c
+Color: White
+Border: None
+Border-radius: 5px
+Cursor: Pointer
+Margin-top: 10px
+
+Disabled State:
+- Background: #333
+- Color: #888
+- Cursor: Not-allowed
+- Condition: humans < 2
+
+Visibility:
+- Lobby: Visible
+- Stores: Hidden
+```
+
+**Shop Action Buttons:**
+```
+Class: .shop-button
+Similar styling to Make Baby button
+Examples:
+- "👨 Send Human to Search" (stores)
+- "🥩 Feed Animals" (zoo)
+
+Disabled when:
+- Humans <= 0 (search)
+- Food dice <= 0 (feed)
+```
+
+### 9.4 Visual Effects & Animations
+
+**Match Indicators:**
+```
+Element: .match-indicator
+Position: Absolute, positioned near match location
+Font-size: 24px (basic) or 28px (super)
+Font-weight: Bold
+Color: Yellow (basic) or Gold (super)
+Text-shadow: 0 0 10px glow
+Z-index: 20
+
+Animation: Blink
+- 0%: Opacity 1
+- 50%: Opacity 0.5
+- 100%: Opacity 1
+Duration: 0.5s infinite
+
+Text:
+- Basic match: "MATCH!"
+- Super match: "SUPER MATCH!"
+
+Lifecycle: 1 second, then removed
+```
+
+**Bonus Effects:**
+```
+Element: .bonus-effect
+Position: Absolute, centered on trigger
+Font-size: 24px
+Font-weight: Bold
+Padding: 10px 20px
+Background: rgba(0,0,0,0.7)
+Border-radius: 10px
+Color: Yellow
+Z-index: 30
+
+Animation: Float-up
+- 0%: translateY(0), opacity 1
+- 100%: translateY(-100px), opacity 0
+Duration: 2s
+
+Examples:
+- "+10 SCORE"
+- "+3 DICE"
+- "BABY MADE!"
+```
+
+**Animal Sprites:**
+```
+Element: .animal-sprite
+Position: Absolute (for escaped animals)
+Font-size: 30px
+Z-index: 10
+Filter: Drop-shadow
+Transition: All 0.5s ease
+Cursor: Pointer
+
+Escaped State:
+- Class: .escaped
+- Animation: Bounce
+  - 0%: translateY(0)
+  - 100%: translateY(-10px)
+  - Duration: 1s infinite alternate
+
+Hunger Bar:
+- Child element: .animal-hunger
+- Position: Absolute bottom
+- Height: 4px
+- Width: 100%
+- Background: Green (content) → Red (hungry)
+- Border-radius: 2px
+- Transform-origin: Left (scales from left)
+```
+
+**Ride Elements:**
+```
+Element: .ride
+Position: Absolute at specified x,y
+Font-size: 40px
+Z-index: 10
+Filter: Drop-shadow
+Transition: All 0.5s ease
+Cursor: Pointer
+
+Status Bar:
+- Child: .ride-status
+- Position: Absolute bottom
+- Height: 4px
+- Width: 100%
+- Background: Green (operational) → Red (broken)
+- Border-radius: 2px
+
+Broken State:
+- Class: .broken
+- Status bar red
+- Click shows broken message
+```
+
+**Confetti:**
+```
+Element: .confetti
+Position: Absolute (random)
+Size: 10×10px
+Z-index: 20
+Background: Random bright colors
+
+Animation: Fall and spin
+- Random start position (top of screen)
+- Fall to bottom with gravity effect
+- Random rotation
+- Duration: 2-3 seconds
+- Used for major achievements
+```
+
+**Special Effect Animations:**
+```
+Keyframes defined for:
+- special-match: Scale pulse
+- poison-fall: Falling motion
+- lion-roar: Expand and fade
+- elephant-shockwave: Ripple expand
+- tiger-attack: Rotate scale pulse
+- monkey-mayhem: Random movement
+- float-up: Rise and fade
+- blink: Opacity pulse
+```
+
+### 9.5 Debug Panel
+
+**Debug Toggle Button:**
+```
+Position: Fixed (10px right, 240px top)
+Background: rgba(0,0,0,0.7)
+Color: White
+Text: "Show Debug" / "Hide Debug"
+Size: Auto × 30px
+Padding: 5px 10px
+Border: None
+Border-radius: 5px
+Cursor: Pointer
+Z-index: 11
+```
+
+**Debug Panel:**
+```
+Container: .debug-panel
+Position: Fixed (10px right, 240px top, below toggle)
+Size: 300px × 200px
+Max-height: 200px
+Overflow-y: Auto
+Background: rgba(0,0,0,0.8)
+Font: Monospace, 12px
+Color: Lime green
+Z-index: 10
+Initial display: None
+
+Content:
+- Array of debug entries (up to 50 stored)
+- Each entry: timestamp + message
+- Newest first
+
+Entry Format:
+- Class: .debug-entry
+- Border-bottom: 1px solid rgba(255,255,255,0.2)
+- Padding-bottom: 5px
+- Margin-bottom: 5px
+
+Example Entries:
+- "[14:23:45] Die landed in column 3 with face 🍕"
+- "[14:23:50] Match of 2 🍕 tiles"
+- "[14:23:52] Store cleared of zombies!"
+```
+
+**Debug Logging System:**
+```
+Function: addDebugEntry(message)
+Process:
+1. Create entry object with timestamp
+2. Add to beginning of debugEntries array
+3. Limit array to 50 entries (pop oldest)
+4. If debug enabled, update panel display
+5. Console.log the entry
+
+Usage:
+- Called throughout game for key events
+- Helps track game state changes
+- Useful for testing and debugging
+```
+
+---
+
+## 10. VISUAL EFFECTS & ANIMATION
+
+### 10.1 Dice Animations
+
+**Tumbling Effect:**
+```
+During Fall:
+- Transform: rotateX(random) rotateY(random) rotateZ(random)
+- Interval: 150ms
+- Updates continuously until settling
+- Creates realistic tumbling appearance
+
+Face Changes:
+- Current face index updated randomly
+- Rotation applied to dice-inner element
+- Smooth transitions (0.1s linear)
+```
+
+**Landing Animation:**
+```
+On Settle:
+1. Stop tumbling interval
+2. Freeze rotation at current face
+3. Transition: 0.3s ease
+4. Move to column position
+5. Reset transform for column layout
+
+Position Update:
+- From absolute (x,y) to relative (in column)
+- Left: 0, Top: 0 (relative to column)
+- Stack order: Bottom to top
+```
+
+### 10.2 Match Animations
+
+**Tile Removal:**
+```
+On Match:
+1. Transition: transform 0.3s, opacity 0.3s
+2. Transform: scale(1.2) initially
+3. Hold at scale(1.2) for 0.3s
+4. Transform: scale(0) final
+5. Opacity: 0
+6. Remove from DOM after 0.3s
+```
+
+**Match Indicator:**
+```
+Appearance:
+- Fade in (0s-0.1s)
+- Hold (0.1s-0.9s)
+- Fade out (0.9s-1s)
+
+Position:
+- Basic match: Column center, bottom area
+- Special match: Screen center
+- Multiple matches: Staggered positions
+
+Blink Effect:
+- Opacity alternates 1 ↔ 0.5
+- Frequency: 2Hz
+- Duration: Full 1 second
+```
+
+### 10.3 Special Effect Animations
+
+**Fire Effect:**
+```
+Visual:
+- Red gradient overlay (bottom area)
+- Height: 100px
+- Background: linear-gradient(to top, rgba(255,0,0,0.3), transparent)
+
+Animation:
+- Fade in: 0.5s
+- Hold: 0.5s
+- Fade out: 1s
+- Total duration: 2s
+
+Fire Spread:
+- Fire burst at target column
+- Radial gradient pulse
+- 1s fade animation
+```
+
+**Shockwave Effect:**
+```
+Element: Circular div
+Initial: Small circle (100px)
+Final: Large circle (500-1000px)
+Border: 3-5px solid white
+Box-shadow: Glow effect
+
+Animation:
+- Scale: 0 → 5-10
+- Opacity: 1 → 0
+- Duration: 1-1.5s
+- Transform-origin: Center
+
+Mega Shockwave:
+- 3 concentric waves
+- Staggered start (0ms, 300ms, 600ms)
+- Larger final scale (10)
+- Longer duration (1.5s)
+```
+
+**Attack Animations:**
+```
+Explosion (💥):
+- Random rotation
+- Scale: 0 → 1.5 → 0
+- Duration: 0.5s
+
+Claw Slashes:
+- Multiple slash emojis (💥)
+- Random positions
+- Random rotation
+- Scale pulse
+- 1s duration
+
+Light Flash:
+- Full-screen overlay
+- Colored tint (orange for roar, white for attacks)
+- Opacity: 0 → 0.3 → 0
+- Duration: 2s
+```
+
+### 10.4 UI Animations
+
+**Button Hover:**
+```
+Transform: Scale 1.05
+Transition: 0.2s ease
+Box-shadow: Enhanced glow
+Cursor: Pointer
+```
+
+**Counter Updates:**
+```
+On Value Change:
+- Brief highlight (yellow glow)
+- Scale pulse: 1 → 1.1 → 1
+- Duration: 0.3s
+- Returns to normal
+```
+
+**Panel Transitions:**
+```
+On Show:
+- Opacity: 0 → 1
+- Transform: translateY(-20px) → translateY(0)
+- Duration: 0.3s ease
+
+On Hide:
+- Opacity: 1 → 0
+- Transform: scale(1) → scale(0.9)
+- Duration: 0.2s ease
+```
+
+### 10.5 Physics Animations
+
+**Dice Bounce:**
+```
+Handled by Matter.js:
+- Restitution: 0.6 (60% energy retained)
+- Multiple bounces before settling
+- Natural deceleration
+- Rotation from angular velocity
+```
+
+**Peg Collisions:**
+```
+High restitution: 0.8
+Low friction: 0.005
+Result: Pinball-like bounces
+- Quick direction changes
+- Smooth deflections
+- Maintains energy
+```
+
+**Gravity Effect:**
+```
+Constant: y = 0.5
+Natural falling speed
+Accelerates gradually
+Balanced for playability
+- Not too fast (allows viewing)
+- Not too slow (maintains pace)
+```
+
+---
+
+## 11. GAME PROGRESSION & WIN CONDITIONS
+
+### 11.1 Current Objectives
+
+**Per-Store Goals:**
+- Eliminate all zombies in each store
+- Trigger: Store Cleared bonus
+- Reward: 5 themed dice, parent return
+
+**Resource Goals:**
+- Build human population through babies
+- Accumulate dice pool for strategic use
+- Maximize score through efficient matching
+
+**Survival Goals:**
+- Keep humans from being depleted
+- Manage zoo animals (feed, capture)
+- Maintain theme park rides
+- Control fire spread
+
+### 11.2 No Formal Win Condition
+
+**Current State:**
+- Sandbox/endless gameplay
+- No game over state implemented
+- No victory screen
+- Focus on resource management optimization
+
+**Potential Future Win Conditions:**
+- Clear all stores of zombies
+- Reach score threshold
+- Survive X time units with Y resources
+- Complete all challenges/achievements
+
+### 11.3 Challenge Systems
+
+**Store Clearing Challenges:**
+- Each store unique difficulty
+- Zoo: Animal management adds complexity
+- Theme Park: Ride maintenance pressure
+- Varied zombie counts per store
+
+**Resource Management Challenges:**
+- Limited dice pools
+- Human allocation decisions
+- Baby-making timing
+- Balancing multiple objectives
+
+### 11.4 Progression Mechanics
+
+**Unlocking Content:**
+- All stores available from start
+- Zoo and Theme Park added dynamically first visit
+- No progressive unlocking currently
+
+**Difficulty Scaling:**
+- Not implemented
+- Could add:
+  - More zombies over time
+  - Faster animal hunger
+  - Faster ride degradation
+  - Limited dice pools
+
+**Skill Development:**
+- Player learns optimal strategies
+- Better understanding of match effects
+- Resource allocation expertise
+- Timing and planning skills
+
+---
+
+## 12. COMPLETE FEATURE LIST
+
+### 12.1 Core Features
+
+**Physics System:**
+✓ Matter.js integration
+✓ Realistic dice physics (bounce, friction, gravity)
+✓ Peg collision system
+✓ Wall obstacles
+✓ Dice settling detection
+✓ Mouse interaction (drag physics bodies)
+
+**Match-2/Match-3 System:**
+✓ Vertical matching (same column)
+✓ Horizontal matching (across columns)
+✓ Basic match effects (2 tiles)
+✓ Super match effects (3+ tiles)
+✓ 30+ different emoji effects
+✓ Match detection algorithm
+✓ Cascading match potential
+
+**Column System:**
+✓ 7-column grid
+✓ Column selection
+✓ Adjacent column swapping
+✓ Top tile swapping only
+✓ Visual selection highlights
+✓ Click-to-select, click-to-swap
+
+**Dice System:**
+✓ 6-faced dice with emoji
+✓ Tumbling animation during fall
+✓ Face randomization
+✓ Color coding by emoji type
+✓ Size: 40×40px
+✓ 3D rotation effects
+
+**Resource Management:**
+✓ Score tracking
+✓ Zombie counting (global & per-store)
+✓ Human management
+✓ Baby system
+✓ Dice pool economy
+✓ Shelter framework
+
+### 12.2 Level Features
+
+**Lobby:**
+✓ Central hub
+✓ Baby-making system
+✓ Dice stack display
+✓ No zombie spawns
+✓ Mall-themed dice
+
+**Food Court:**
+✓ Red square pegs
+✓ Horizontal wall obstacle
+✓ Food-themed dice
+✓ Zombie clearing objective
+
+**Arcade:**
+✓ Blue diamond pegs
+✓ Side wall funneling
+✓ Game-themed dice
+✓ Zombie clearing objective
+
+**Clothing Store:**
+✓ Pink square pegs (rotated)
+✓ Platform-style walls
+✓ Fashion-themed dice
+✓ Zombie clearing objective
+
+**Zoo:**
+✓ Pentagon pegs
+✓ Cage structure walls
+✓ Animal-themed dice
+✓ Hunger system (10-second intervals)
+✓ Feeding mechanics
+✓ Animal escape system
+✓ Capture mechanics
+✓ Aggressive animal behaviors
+✓ Animal attack system
+
+**Theme Park:**
+✓ Star-shaped pegs
+✓ Ride track walls
+✓ Ride-themed dice
+✓ Ticket system
+✓ 4 operational rides
+✓ Ride maintenance system (15-second intervals)
+✓ Breakdown mechanics
+✓ Repair system
+✓ Ticket purchasing
+✓ Daily ticket offers
+
+### 12.3 Character Features
+
+**Humans:**
+✓ Starting count: 10 adults, 3 babies
+✓ Used for searches
+✓ Used for baby-making
+✓ Used for zoo captures
+✓ Used for theme park repairs
+✓ Used for ticket purchases
+✓ Match effects in lobby/stores
+
+**Babies:**
+✓ Created from 2 humans
+✓ Growth system (30s with shelters)
+✓ Parent temporary removal
+✓ Parent return on store clear
+
+**Zombies:**
+✓ Health system (2 HP regular, 5 HP boss)
+✓ Visual health bars
+✓ Per-store tracking
+✓ Match-based damage
+✓ Removal animations
+✓ Store clearing rewards
+
+**Animals (Zoo):**
+✓ 6 animal types (tiger, lion, elephant, snake, giraffe, monkey)
+✓ Hunger tracking (1-10 scale)
+✓ Visual hunger bars
+✓ Aggressive behaviors when hungry
+✓ Unique abilities per animal
+✓ Escape mechanics
+✓ Capture requirements
+✓ Feeding system
+
+**Rides (Theme Park):**
+✓ 4 ride types (ferris wheel, roller coaster, carousel, teacups)
+✓ Maintenance tracking (0-100%)
+✓ Status bars
+✓ Breakdown system
+✓ Repair mechanics
+✓ Ticket usage
+✓ Special ride effects
+
+### 12.4 Special Mechanics
+
+**Fire System:**
+✓ Fire tile matches
+✓ Fire spread (3-second timer)
+✓ Visual fire effects
+✓ Random column targeting
+✓ Multiple fire handling
+
+**Poison System:**
+✓ Poison tile creation (snake)
+✓ Biohazard visual (☣️)
+✓ Negative match effects
+✓ Multiple poison tiles (super snake)
+
+**Search System:**
+✓ Triggered by human matches in stores
+✓ Area-based tile addition
+✓ Weighted random selection (20% human, 10% money, 70% themed)
+✓ Dice pool consumption
+✓ 1-5 tiles per search
+✓ Visual search indicator
+
+**Shockwave System:**
+✓ Elephant match effect
+✓ Visual wave expansion
+✓ Sound/visual "TRUMPET"
+✓ Mega shockwave (super match)
+✓ Multiple concentric waves
+
+**Attack System:**
+✓ Animal attacks (hungry state)
+✓ Target adjacent tiles
+✓ Remove humans/zombies
+✓ Visual attack effects (💥)
+✓ Resource count updates
+
+**Hint System:**
+✓ Giraffe basic match: Show 1 hint
+✓ Giraffe super match: Show all hints
+✓ Column highlighting
+✓ Timed display (3-5 seconds)
+
+**Shuffle System:**
+✓ Monkey super match: Shuffle all
+✓ Random tile repositioning
+✓ Visual "Monkey Business" effect
+✓ Multiple monkey animations
+
+### 12.5 UI Features
+
+**Main UI:**
+✓ Resource counters (score, zombies, humans, babies, shelters)
+✓ Dice bag display (all types, counts)
+✓ Dice stack (lobby, clickable)
+✓ Level selector (6 buttons)
+✓ Debug toggle button
+✓ Debug panel (50-entry log)
+
+**Store UI:**
+✓ Store info panel (zombies, dice, search button)
+✓ Store cleared indicator
+✓ Store name label
+
+**Zoo UI:**
+✓ Animal info panel
+✓ Caged animal count
+✓ Escaped animal count
+✓ Feed animals button
+
+**Theme Park UI:**
+✓ Ticket counter
+✓ Ticket booth (clickable)
+✓ Ride status indicators
+✓ Ride click interactions
+
+**Interactive Elements:**
+✓ Clickable columns
+✓ Selectable/swappable dice
+✓ Clickable buttons (make baby, search, feed, etc.)
+✓ Clickable rides
+✓ Clickable escaped animals
+✓ Hover effects
+
+### 12.6 Visual Effects
+
+**Match Effects:**
+✓ Match indicators ("MATCH!", "SUPER MATCH!")
+✓ Tile removal animations (scale, fade)
+✓ Confetti (not currently spawning but framework exists)
+✓ Bonus text floating up
+
+**Special Effect Animations:**
+✓ Fire visual (gradient overlay, spread burst)
+✓ Poison fall animation
+✓ Shockwave expansion
+✓ Attack explosions
+✓ Light flashes (roars, attacks)
+✓ Food falling (feeding animation)
+✓ Ticket earning animation
+
+**Animal Effects:**
+✓ Tiger attack (claw slashes, screen shake)
+✓ Lion roar (text, glow)
+✓ Elephant trumpet (wave, text)
+✓ Snake poison (green glow, fall)
+✓ Giraffe hints (column highlights)
+✓ Monkey steal/shuffle (multi-monkey mayhem)
+
+**Ride Effects:**
+✓ Board rotation (ferris wheel super)
+✓ Path clearing (roller coaster)
+✓ Tile swapping (carousel)
+✓ Tile transformation (teacups)
+
+**Physics Effects:**
+✓ Dice tumbling
+✓ Peg bounces
+✓ Wall collisions
+✓ Smooth settling
+
+### 12.7 System Features
+
+**State Management:**
+✓ Global game state object
+✓ Level-specific state saving
+✓ State restoration on level return
+✓ Resource persistence
+
+**Event System:**
+✓ Physics updates (Matter.js afterUpdate)
+✓ Click handlers (columns, buttons, rides, animals)
+✓ Hover handlers (buttons, UI elements)
+✓ Timer intervals (animal behavior, ride maintenance)
+
+**Debug System:**
+✓ Debug logging (50-entry history)
+✓ Debug panel toggle
+✓ Timestamped entries
+✓ Console logging
+✓ Event tracking
+
+**Audio (Framework):**
+✓ No audio currently implemented
+✓ Text-based sound effects ("TRUMPET!", "ROAR!")
+✓ Ready for audio integration
+
+### 12.8 Code Architecture Features
+
+**Modular Functions:**
+✓ 100+ distinct functions
+✓ Clear separation of concerns
+✓ Reusable helper functions
+✓ Event-driven architecture
+
+**Error Handling:**
+✓ Try-catch blocks throughout
+✓ Console error logging
+✓ Graceful degradation
+✓ Null checks
+
+**Optimization:**
+✓ Efficient match detection
+✓ Minimal DOM manipulation
+✓ Debounced updates
+✓ Animation cleanup
+
+**Scalability:**
+✓ Easy to add new levels
+✓ Easy to add new emoji effects
+✓ Easy to add new special mechanics
+✓ Configurable constants
+
+### 12.9 Known Limitations
+
+**Missing Features:**
+- Shelter building mechanics (framework only)
+- Audio/sound effects
+- Actual daily reset for tickets (no localStorage persistence)
+- Save/load game state
+- Multiple game modes
+- Tutorial system
+- Achievement system
+- Leaderboards
+
+**Balance Issues:**
+- Dice pool economy not fully tuned
+- Animal hunger rate may be too fast/slow
+- Ride degradation rate may need adjustment
+- Some emoji effects may be overpowered/underpowered
+
+**Performance:**
+- No optimization for mobile
+- May slow with many dice on screen
+- Interval-based systems stack if page left open
+
+**Polish:**
+- Some placeholder functions (transformRandomTile, etc.)
+- Inconsistent animation durations
+- Visual effect cleanup could be improved
+- Some CSS could be consolidated
+
+---
+
+## APPENDIX: EMOJI REFERENCE GUIDE
+
+### Complete Emoji Effects Table
+
+| Emoji | Name | Basic Match (2) | Super Match (3+) | Points |
+|-------|------|----------------|------------------|---------|
+| 🧟‍♂️ | Zombie Man | Clear 1 zombie | Clear multiple zombies | 15-30 |
+| 🧟‍♀️ | Zombie Woman | Clear 1 zombie | Clear multiple zombies | 15-30 |
+| 💀 | Skull (Boss) | Clear 3 zombies | Clear 5+ zombies | 50+ |
+| 👨 | Man | +1 human or search | Multiple humans/searches | 5-15 |
+| 👩 | Woman | +1 human or search | Multiple humans/searches | 5-15 |
+| 👶 | Baby | (Count only) | (Count only) | N/A |
+| 🔥 | Fire | Fire effect + spread | Multiple fires | 10 |
+| 💰 | Money Bag | +3 dice | +8 dice | 25 |
+| 💳 | Credit Card | +3 dice | +8 dice | 25 |
+| 🧺 | Basket | Small random bonus | Mega bonus | 30-250 |
+| 🐅 | Tiger | Clear area zombies | Clear ALL zombies | 20-50 |
+| 🦁 | Lion | Scare 1 zombie | Scare ALL zombies | 15-45 |
+| 🐘 | Elephant | Shockwave effect | Mega shockwave | 15-40 |
+| 🐍 | Snake | Add poison tile | Add multiple poison | 10-30 |
+| 🦒 | Giraffe | Show 1 hint | Show ALL hints | 10-35 |
+| 🐒 | Monkey | Steal 1 tile | Shuffle all tiles | 10-35 |
+| 🎡 | Ferris Wheel | Board overview | Rotate board | 10-40 |
+| 🎢 | Roller Coaster | Clear row/column | Clear multiple paths | 15-35 |
+| 🎪 | Circus | Add special tile | Add multiple specials | 10-30 |
+| 🎠 | Carousel | Swap random tiles | Spin board | 10-35 |
+| 🎭 | Performer | Transform tile | Transform multiple | 10-30 |
+| 🎟️ | Ticket | +tickets (match length) | +double tickets | 10-30 |
+| ☣️ | Poison | Negative effect | N/A | -10 |
+| 🛍️ | Shopping Bag | Standard match | +1 dice | 10 |
+| 🛒 | Shopping Cart | Standard match | +1 dice | 10 |
+| 🍕 | Pizza | Standard match | +1 dice | 10 |
+| 🍔 | Burger | Standard match | +1 dice | 10 |
+| 🍟 | Fries | Standard match | +1 dice | 10 |
+| 🥤 | Drink | Standard match | +1 dice | 10 |
+| 🎮 | Game Controller | Standard match | +1 dice | 10 |
+| 🎰 | Slot Machine | Standard match | +1 dice | 10 |
+| 🎯 | Dartboard | Standard match | +1 dice | 10 |
+| 👗 | Dress | Standard match | +1 dice | 10 |
+| 👚 | Shirt | Standard match | +1 dice | 10 |
+| 👖 | Jeans | Standard match | +1 dice | 10 |
+| 👠 | High Heel | Standard match | +1 dice | 10 |
+
+---
+
+## CONCLUSION
+
+Zombie Mall Dice is a complex, multi-layered game combining physics simulation, puzzle mechanics, resource management, and multiple themed locations with unique features. The game offers deep strategic gameplay with 30+ emoji types, each with distinct effects, and special location-specific mechanics (zoo animal management, theme park ride maintenance) that create varied gameplay experiences.
+
+The modular code architecture allows for easy expansion and modification, with clear systems for physics, matching, resources, and UI. Current implementation provides a strong foundation for future features like audio, achievements, save systems, and additional content.
+
+**Key Strengths:**
+- Unique physics-based dice dropping mechanic
+- Rich match-2/match-3 puzzle system with varied effects
+- Complex resource management across multiple systems
+- Themed locations with distinct mechanics
+- Extensive visual feedback and animations
+- Scalable architecture for future expansion
+
+**Areas for Future Development:**
+- Balance tuning (dice pools, timers, difficulty)
+- Audio/sound effects integration
+- Save/load system with persistence
+- Tutorial and onboarding
+- Additional levels and emoji types
+- Achievement and progression systems
+- Mobile optimization
+- Performance improvements for large-scale gameplay
+
+This design document serves as a comprehensive reference for understanding, maintaining, and expanding the Zombie Mall Dice game system.
