@@ -1,0 +1,1380 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                    ZOMBSWAP - IMPLEMENTATION PLAN                          ║
+║                         Phases 4-6 Roadmap                                 ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════════
+PHASE 4: ENHANCED CORE MECHANICS
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJECTIVE: Add depth to existing systems - zombie health, store clearing,
+special effects, and roguelike pressure mechanics.
+
+───────────────────────────────────────────────────────────────────────────────
+4.1 ZOMBIE HEALTH SYSTEM
+───────────────────────────────────────────────────────────────────────────────
+
+CURRENT STATE:
+- Zombies are just a counter
+- No visual representation on board
+- Matching zombie dice decrements counter
+
+TARGET STATE:
+- Each store has visible zombie "entities" with health bars
+- Zombie dice in columns damage nearby zombie entities
+- Boss zombies (💀) have more health
+
+IMPLEMENTATION:
+
+A. Add zombie entities to game state:
+
+   gameState.zombieEntities = {
+     food: [
+       { id: 1, health: 2, maxHealth: 2, type: 'normal', position: 0 },
+       { id: 2, health: 2, maxHealth: 2, type: 'normal', position: 3 },
+       { id: 3, health: 5, maxHealth: 5, type: 'boss', position: 6 }
+     ],
+     arcade: [...],
+     clothing: [...]
+   }
+
+B. Visual representation (ASCII style):
+
+   In sidebar, add zombie list:
+
+   ┌─ ZOMBIES IN STORE ─┐
+   [####....] Normal (4/10 HP)
+   [##......] Normal (2/10 HP)
+   [########] BOSS (8/10 HP)
+
+   OR in game area, floating near columns:
+
+   Column 0: 🧟 [##..] 2/4
+   Column 3: 🧟 [#...] 1/4
+   Column 6: 💀 [####] 4/4
+
+C. Match effect changes:
+
+   When zombie dice (🧟‍♂️/🧟‍♀️) matched:
+   - Find zombie entities in adjacent columns (±1 from match position)
+   - Deal 1 damage per matched die
+   - If entity reaches 0 HP, remove from gameState.zombieEntities
+   - Update global zombie counter
+   - Show damage indicator (ASCII: "-1 HP" floating up)
+
+D. Boss zombie mechanics:
+
+   When boss zombie dice (💀) matched:
+   - Deal 3 damage to nearby zombie (or 1 damage to 3 zombies)
+   - Boss entities have 5 HP instead of 2
+   - Show special effect when killed (ASCII explosion: "***BOOM***")
+
+TESTING CHECKPOINT:
+- Drop dice in Food Court
+- Match zombie dice near column 0
+- Verify zombie entity at position 0 takes damage
+- Verify health bar updates in UI
+- Verify zombie removed when HP reaches 0
+
+───────────────────────────────────────────────────────────────────────────────
+4.2 STORE CLEARING MECHANICS
+───────────────────────────────────────────────────────────────────────────────
+
+TARGET STATE:
+- When all zombie entities in a store are cleared, trigger rewards
+- Parents used for baby-making return
+- Bonus dice awarded
+- Visual celebration
+
+IMPLEMENTATION:
+
+A. Track store clear state:
+
+   gameState.storeCleared = {
+     food: false,
+     arcade: false,
+     clothing: false
+   }
+
+B. Check for clear condition after each zombie kill:
+
+   function checkStoreCleared(storeName) {
+     if (gameState.zombieEntities[storeName].length === 0) {
+       if (!gameState.storeCleared[storeName]) {
+         clearStore(storeName);
+       }
+     }
+   }
+
+   function clearStore(storeName) {
+     gameState.storeCleared[storeName] = true;
+
+     // Return parents
+     gameState.humans += gameState.parentsDice.length;
+     gameState.parentsDice = [];
+
+     // Award bonus dice
+     const poolKey = DICE_SETS[storeName].poolKey;
+     gameState.dicePool[poolKey] += 5;
+
+     // Show notification
+     showNotification('STORE CLEARED!\n+' +
+       gameState.parentsDice.length + ' Humans Returned\n+5 Dice');
+
+     // Visual effect - add ASCII confetti/celebration
+     spawnConfetti();
+   }
+
+C. Zombie respawn mechanic (roguelike pressure):
+
+   After clearing, zombies slowly respawn:
+
+   setInterval(() => {
+     if (gameState.storeCleared[currentLevel] &&
+         Math.random() < 0.1) { // 10% chance every interval
+       spawnZombieEntity(currentLevel);
+     }
+   }, 30000); // Check every 30 seconds
+
+D. ASCII confetti effect:
+
+   function spawnConfetti() {
+     const chars = ['*', '+', '~', '•', '◦'];
+     for (let i = 0; i < 20; i++) {
+       const confetti = document.createElement('div');
+       confetti.textContent = chars[Math.floor(Math.random() * chars.length)];
+       confetti.style.position = 'absolute';
+       confetti.style.left = Math.random() * 100 + '%';
+       confetti.style.top = '0';
+       confetti.style.color = '#00ff00';
+       confetti.style.fontSize = '20px';
+       confetti.style.animation = 'confetti-fall 2s linear';
+       document.getElementById('game-area').appendChild(confetti);
+       setTimeout(() => confetti.remove(), 2000);
+     }
+   }
+
+TESTING CHECKPOINT:
+- Clear all zombies from Food Court
+- Verify "STORE CLEARED" notification
+- Verify parents return (if any were used)
+- Verify 5 bonus dice added to pool
+- Enter another store, return - verify zombies respawn over time
+
+───────────────────────────────────────────────────────────────────────────────
+4.3 SPECIAL MATCH EFFECTS
+───────────────────────────────────────────────────────────────────────────────
+
+Currently basic. Need to add: Fire spread, Money effects, Bonus basket.
+
+A. FIRE SPREAD (🔥):
+
+   CURRENT: Score increase only
+   TARGET: Fire spreads to adjacent columns, creates chain reactions
+
+   Implementation:
+
+   gameState.fireTimers = []; // Track active fire spread timers
+
+   function applyFireEffect(matchedDice, isSuper) {
+     const columnIndex = matchedDice[0].columnIndex;
+
+     // Add fire to current column
+     addFireToColumn(columnIndex);
+
+     if (isSuper) {
+       // Super match: fire spreads to adjacent columns
+       addFireToColumn(columnIndex - 1);
+       addFireToColumn(columnIndex + 1);
+     }
+
+     // Start spread timer
+     gameState.fireTimers.push(
+       setTimeout(() => spreadFire(columnIndex), 3000)
+     );
+   }
+
+   function addFireToColumn(columnIndex) {
+     if (columnIndex < 0 || columnIndex >= 7) return;
+     if (gameState.dicePool.fire <= 0) return;
+
+     gameState.dicePool.fire--;
+
+     // Create a fire die and add to top of column
+     const fireDice = createRestoredDice('🔥', columnIndex);
+     gameState.columnStacks[columnIndex].push(fireDice);
+     repositionColumn(columnIndex);
+   }
+
+   function spreadFire(fromColumn) {
+     // 50% chance to spread to each adjacent column
+     if (Math.random() < 0.5) addFireToColumn(fromColumn - 1);
+     if (Math.random() < 0.5) addFireToColumn(fromColumn + 1);
+   }
+
+   Visual: Fire dice pulse red, show spreading animation with ASCII flames
+
+   │ 🔥 │     │    │   becomes   │ 🔥 │ 🔥  │ 🔥 │
+                                   └─ flame particles └─ spreading
+
+B. MONEY EFFECTS (💰/💳):
+
+   CURRENT: Add dice to pool, score
+   TARGET: Enhanced rewards, visual money collection
+
+   function applyMoneyEffect(matchCount, isSuper) {
+     const baseReward = isSuper ? 8 : 3;
+     const diceGained = baseReward * matchCount;
+
+     // Add dice to ALL pools (money is versatile)
+     for (let pool in gameState.dicePool) {
+       gameState.dicePool[pool] += Math.floor(diceGained / 4);
+     }
+
+     // Bonus score
+     gameState.score += 25 * matchCount;
+
+     // Show coin animation
+     showCoinCollectAnimation(diceGained);
+   }
+
+   function showCoinCollectAnimation(amount) {
+     // ASCII: Show "$$$" or "💰" floating up
+     const coin = document.createElement('div');
+     coin.textContent = '+' + amount + ' 💰';
+     coin.className = 'coin-float';
+     // ... animate upward and fade
+   }
+
+C. BONUS BASKET (🧺):
+
+   CURRENT: Not implemented
+   TARGET: Random powerful bonuses
+
+   function applyBasketEffect(isSuper) {
+     if (isSuper) {
+       // MEGA BONUS
+       gameState.humans += 3;
+       gameState.score += 250;
+       gameState.zombies = Math.max(0, gameState.zombies - 3);
+
+       for (let pool in gameState.dicePool) {
+         gameState.dicePool[pool] += 5;
+       }
+
+       showNotification('MEGA BONUS!\n+3 Humans\n-3 Zombies\n+5 All Dice\n+250 Score');
+     } else {
+       // Random small bonus
+       const bonuses = [
+         { type: 'human', amount: 1, msg: '+1 Human' },
+         { type: 'dice', amount: 1, msg: '+1 Dice (all types)' },
+         { type: 'score', amount: 50, msg: '+50 Score' }
+       ];
+
+       const bonus = bonuses[Math.floor(Math.random() * bonuses.length)];
+
+       switch(bonus.type) {
+         case 'human': gameState.humans += bonus.amount; break;
+         case 'dice':
+           for (let pool in gameState.dicePool) {
+             gameState.dicePool[pool] += bonus.amount;
+           }
+           break;
+         case 'score': gameState.score += bonus.amount; break;
+       }
+
+       showNotification('BONUS!\n' + bonus.msg);
+     }
+   }
+
+TESTING CHECKPOINT:
+- Match fire dice, verify spread after 3 seconds
+- Match money dice, verify dice added to multiple pools
+- Match basket dice, verify random bonus awarded
+- Super match each, verify enhanced effects
+
+───────────────────────────────────────────────────────────────────────────────
+4.4 BABY-MAKING ENHANCEMENT
+───────────────────────────────────────────────────────────────────────────────
+
+CURRENT: Basic implementation (costs 2 humans, adds 1 baby)
+TARGET: Parents tracked, returned on store clear, shelter integration prep
+
+Already partially implemented in 4.2 (store clearing returns parents).
+
+Additional enhancements:
+
+A. Show parent status in UI:
+
+   In sidebar:
+   ┌─ RESOURCES ─┐
+   Humans: 10 (2 parenting)
+
+   This makes it clear humans are temporarily unavailable.
+
+B. Parent dice tracking:
+
+   When making baby:
+   gameState.parentsDice.push({ id: generateId(), timestamp: Date.now() });
+
+   This allows for future mechanics like:
+   - Parents return after X time OR store clear (whichever first)
+   - Parents can be "rescued" from stores
+   - Parent survival becomes a concern in harder difficulty
+
+C. Baby growth preparation:
+
+   Add timer for baby growth (implemented in Phase 5):
+
+   gameState.babyTimers = [
+     { babyId: 1, startTime: Date.now(), duration: 30000 }
+   ];
+
+   If shelters exist, babies grow after 30 seconds.
+
+───────────────────────────────────────────────────────────────────────────────
+4.5 ROGUELIKE PRESSURE MECHANICS
+───────────────────────────────────────────────────────────────────────────────
+
+OBJECTIVE: Make the game tight and challenging like a roguelike
+
+A. ZOMBIE SPAWN PRESSURE:
+
+   Zombies gradually spawn over time, increasing threat:
+
+   let zombieSpawnRate = 60000; // Start at 1 minute
+   let zombieSpawnTimer;
+
+   function startZombieSpawnPressure() {
+     zombieSpawnTimer = setInterval(() => {
+       if (gameState.currentLevel !== 'lobby') {
+         spawnZombieEntity(gameState.currentLevel);
+
+         // Increase pressure - spawn faster over time
+         zombieSpawnRate = Math.max(15000, zombieSpawnRate - 1000);
+         clearInterval(zombieSpawnTimer);
+         startZombieSpawnPressure(); // Restart with new rate
+       }
+     }, zombieSpawnRate);
+   }
+
+   function spawnZombieEntity(storeName) {
+     const type = Math.random() < 0.2 ? 'boss' : 'normal';
+     const health = type === 'boss' ? 5 : 2;
+     const position = Math.floor(Math.random() * 7);
+
+     gameState.zombieEntities[storeName].push({
+       id: generateId(),
+       health: health,
+       maxHealth: health,
+       type: type,
+       position: position
+     });
+
+     gameState.zombies++;
+     updateUI();
+
+     showNotification('⚠️ NEW ZOMBIE APPEARED!');
+   }
+
+B. RESOURCE SCARCITY:
+
+   Reduce starting resources for harder difficulty:
+
+   const DIFFICULTY_CONFIGS = {
+     easy: {
+       startingHumans: 10,
+       startingBabies: 3,
+       startingDice: { mall: 20, food: 15, arcade: 15, clothing: 15 }
+     },
+     normal: {
+       startingHumans: 8,
+       startingBabies: 2,
+       startingDice: { mall: 15, food: 12, arcade: 12, clothing: 12 }
+     },
+     hard: {
+       startingHumans: 5,
+       startingBabies: 1,
+       startingDice: { mall: 10, food: 8, arcade: 8, clothing: 8 }
+     }
+   };
+
+   Current setting: Use 'normal' for balanced roguelike feel
+
+C. DICE SCARCITY PRESSURE:
+
+   Limit dice regeneration from matches:
+
+   // Instead of +5 dice per super match, reduce to +2
+   // Instead of +1 dice per regular match, reduce to +0 (no regeneration)
+
+   This makes every dice drop a precious resource.
+   Forces strategic decisions: "Do I drop dice to clear zombies or save for later?"
+
+D. LOSE CONDITION:
+
+   Game ends when:
+   - All humans are dead (including babies, parents)
+   - All dice pools are empty AND columns are full (no moves possible)
+   - Zombies reach a critical mass (20+)
+
+   function checkLoseCondition() {
+     if (gameState.humans <= 0 && gameState.babies <= 0) {
+       gameOver('No humans remaining');
+     }
+
+     const totalDice = Object.values(gameState.dicePool).reduce((a,b) => a+b, 0);
+     const allColumnsFull = gameState.columnStacks.every(col => col.length >= 8);
+
+     if (totalDice === 0 && allColumnsFull) {
+       gameOver('No moves remaining');
+     }
+
+     if (gameState.zombies >= 20) {
+       gameOver('Overrun by zombies');
+     }
+   }
+
+   function gameOver(reason) {
+     showNotification('GAME OVER\n' + reason +
+                      '\nScore: ' + gameState.score +
+                      '\n[ Press R to Restart ]');
+     // Pause game loop
+     // Wait for restart
+   }
+
+E. SURVIVAL SCORING:
+
+   Add survival time to score:
+
+   let gameStartTime = Date.now();
+   let survivalBonus = 0;
+
+   setInterval(() => {
+     survivalBonus += 10; // +10 points per second survived
+     gameState.score += 10;
+     updateUI();
+   }, 1000);
+
+TESTING CHECKPOINT:
+- Start game, wait 1 minute - verify zombie spawns
+- Use all dice, verify getting more is difficult
+- Check lose conditions trigger properly
+- Verify survival time adds to score
+
+═══════════════════════════════════════════════════════════════════════════════
+PHASE 5: COMPLEX LOCATION SYSTEMS (ZOO & THEME PARK)
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJECTIVE: Add two new locations with unique mechanics that interact with
+           the core systems in complex ways.
+
+───────────────────────────────────────────────────────────────────────────────
+5.1 ZOO LOCATION - ANIMAL MANAGEMENT
+───────────────────────────────────────────────────────────────────────────────
+
+CONCEPT: Animals have hunger that increases over time. If not fed, they
+         become aggressive or escape, causing problems.
+
+A. ANIMAL ENTITIES:
+
+   gameState.animals = {
+     zoo: [
+       { id: 1, type: 'tiger', hunger: 0, maxHunger: 10, position: 2, escaped: false },
+       { id: 2, type: 'elephant', hunger: 3, maxHunger: 10, position: 5, escaped: false },
+       { id: 3, type: 'monkey', hunger: 7, maxHunger: 10, position: 1, escaped: false }
+     ]
+   };
+
+B. HUNGER SYSTEM:
+
+   setInterval(() => {
+     if (gameState.currentLevel === 'zoo') {
+       gameState.animals.zoo.forEach(animal => {
+         animal.hunger = Math.min(animal.maxHunger, animal.hunger + 1);
+
+         if (animal.hunger >= 8) {
+           triggerAggressiveBehavior(animal);
+         }
+
+         if (animal.hunger >= 10 && Math.random() < 0.3) {
+           animalEscape(animal);
+         }
+       });
+       updateUI();
+     }
+   }, 10000); // Hunger increases every 10 seconds
+
+C. AGGRESSIVE BEHAVIOR:
+
+   function triggerAggressiveBehavior(animal) {
+     switch(animal.type) {
+       case 'tiger':
+       case 'lion':
+         // Attack nearby entities (zombies or humans)
+         attackNearby(animal.position);
+         showNotification('🐅 ' + animal.type.toUpperCase() + ' IS AGGRESSIVE!');
+         break;
+
+       case 'elephant':
+         // Create shockwave, shuffles nearby columns
+         createShockwave(animal.position);
+         showNotification('🐘 ELEPHANT STOMPING!');
+         break;
+
+       case 'snake':
+         // Add poison tiles to board
+         addPoisonTile();
+         showNotification('🐍 SNAKE SPITS POISON!');
+         break;
+
+       case 'monkey':
+         // Steal random dice from pool
+         stealDice();
+         showNotification('🐒 MONKEY STOLE DICE!');
+         break;
+     }
+   }
+
+D. ANIMAL ESCAPE MECHANIC:
+
+   function animalEscape(animal) {
+     animal.escaped = true;
+     animal.escapeX = Math.random() * 600 + 100;
+     animal.escapeY = Math.random() * 400 + 100;
+
+     // Create escaped animal element
+     const escapedEl = document.createElement('div');
+     escapedEl.className = 'escaped-animal';
+     escapedEl.textContent = getAnimalEmoji(animal.type);
+     escapedEl.style.position = 'absolute';
+     escapedEl.style.left = animal.escapeX + 'px';
+     escapedEl.style.top = animal.escapeY + 'px';
+     escapedEl.style.fontSize = '40px';
+     escapedEl.style.cursor = 'pointer';
+     escapedEl.dataset.animalId = animal.id;
+
+     // Click to capture (requires human)
+     escapedEl.addEventListener('click', () => {
+       if (gameState.humans >= 1) {
+         captureAnimal(animal.id);
+       } else {
+         showNotification('Need 1 human to capture!');
+       }
+     });
+
+     document.getElementById('game-area').appendChild(escapedEl);
+
+     // Move around randomly
+     setInterval(() => {
+       if (animal.escaped) {
+         animal.escapeX += (Math.random() - 0.5) * 50;
+         animal.escapeY += (Math.random() - 0.5) * 50;
+         escapedEl.style.left = animal.escapeX + 'px';
+         escapedEl.style.top = animal.escapeY + 'px';
+       }
+     }, 2000);
+
+     showNotification('⚠️ ANIMAL ESCAPED!');
+   }
+
+   function captureAnimal(animalId) {
+     gameState.humans--; // Use 1 human
+
+     const animal = gameState.animals.zoo.find(a => a.id === animalId);
+     animal.escaped = false;
+     animal.hunger = 0; // Reset hunger
+
+     // Remove visual element
+     const el = document.querySelector(`[data-animal-id="${animalId}"]`);
+     el.remove();
+
+     showNotification('Animal captured!\n-1 Human');
+     updateUI();
+   }
+
+E. FEEDING MECHANIC:
+
+   Add "Feed Animals" button in sidebar (only visible in Zoo):
+
+   function feedAnimals() {
+     // Costs food dice from pool
+     if (gameState.dicePool.food < 3) {
+       showNotification('Need 3 food dice to feed animals!');
+       return;
+     }
+
+     gameState.dicePool.food -= 3;
+
+     // Reset all animal hunger
+     gameState.animals.zoo.forEach(animal => {
+       animal.hunger = 0;
+     });
+
+     showNotification('Animals fed!\n-3 Food Dice');
+     updateUI();
+   }
+
+F. ANIMAL MATCH EFFECTS:
+
+   When animal emoji matched (🐅🦁🐘🐍🦒🐒):
+
+   - Tiger (🐅): Deal damage to zombies in area
+   - Lion (🦁): Scare zombies (remove 1-2)
+   - Elephant (🐘): Shockwave visual effect
+   - Snake (🐍): Add poison tiles (☣️)
+   - Giraffe (🦒): Show match hints (highlight matching top dice)
+   - Monkey (🐒): Shuffle random dice positions
+
+   Super matches = enhanced versions of these effects
+
+G. VISUAL UI (ASCII style):
+
+   In sidebar when in Zoo:
+
+   ┌─ ANIMALS ─┐
+   🐅 Tiger [###.....] 3/10 ⚠️
+   🐘 Elephant [#.......] 1/10
+   🐒 Monkey [####....] 4/10
+
+   [ Feed Animals ] (3 🍕)
+
+   ⚠️ = Animal is aggressive (hunger > 7)
+
+TESTING CHECKPOINT:
+- Enter Zoo, wait 20 seconds - verify hunger increases
+- Let hunger reach 8 - verify aggressive behavior triggers
+- Let hunger reach 10 - verify animal escapes
+- Click escaped animal with humans - verify capture works
+- Use Feed Animals button - verify hunger resets
+
+───────────────────────────────────────────────────────────────────────────────
+5.2 THEME PARK LOCATION - RIDE MAINTENANCE
+───────────────────────────────────────────────────────────────────────────────
+
+CONCEPT: Rides require tickets to use and maintenance to keep running.
+         Poorly maintained rides break down. Each ride has unique effect.
+
+A. RIDE SYSTEM:
+
+   gameState.rides = [
+     { id: 1, type: 'ferris', maintenance: 10, maxMaintenance: 10, broken: false },
+     { id: 2, type: 'coaster', maintenance: 10, maxMaintenance: 10, broken: false },
+     { id: 3, type: 'carousel', maintenance: 10, maxMaintenance: 10, broken: false },
+     { id: 4, type: 'teacups', maintenance: 10, maxMaintenance: 10, broken: false }
+   ];
+
+   gameState.tickets = 0;
+
+B. MAINTENANCE DEGRADATION:
+
+   setInterval(() => {
+     if (gameState.currentLevel === 'themepark') {
+       gameState.rides.forEach(ride => {
+         if (!ride.broken) {
+           ride.maintenance = Math.max(0, ride.maintenance - 1);
+
+           // Low maintenance = higher breakdown chance
+           if (ride.maintenance <= 3) {
+             const breakChance = (3 - ride.maintenance) * 0.2; // 0.2, 0.4, 0.6
+             if (Math.random() < breakChance) {
+               ride.broken = true;
+               showNotification('⚠️ ' + ride.type.toUpperCase() + ' BROKE DOWN!');
+             }
+           }
+         }
+       });
+       updateUI();
+     }
+   }, 15000); // Maintenance drops every 15 seconds
+
+C. RIDE EFFECTS:
+
+   function useRide(rideType) {
+     // Costs 1 ticket
+     if (gameState.tickets < 1) {
+       showNotification('Need 1 ticket!');
+       return;
+     }
+
+     const ride = gameState.rides.find(r => r.type === rideType);
+     if (ride.broken) {
+       showNotification('Ride is broken! Fix it first.');
+       return;
+     }
+
+     gameState.tickets--;
+
+     switch(rideType) {
+       case 'ferris':
+         // Show board overview with match hints
+         highlightAllMatches();
+         showNotification('🎡 Ferris Wheel: Match hints revealed!');
+         break;
+
+       case 'coaster':
+         // Clear a random row
+         clearRandomRow();
+         showNotification('🎢 Roller Coaster: Row cleared!');
+         break;
+
+       case 'carousel':
+         // Swap random tiles
+         swapRandomTiles(3);
+         showNotification('🎠 Carousel: Tiles shuffled!');
+         break;
+
+       case 'teacups':
+         // Transform random tiles to different emoji
+         transformRandomTiles(2);
+         showNotification('☕ Teacups: Tiles transformed!');
+         break;
+     }
+
+     updateUI();
+   }
+
+D. FIX RIDE MECHANIC:
+
+   function fixRide(rideId) {
+     if (gameState.humans < 1) {
+       showNotification('Need 1 human to fix ride!');
+       return;
+     }
+
+     gameState.humans--;
+
+     const ride = gameState.rides.find(r => r.id === rideId);
+     ride.broken = false;
+     ride.maintenance = ride.maxMaintenance;
+
+     showNotification('Ride fixed!\n-1 Human');
+     updateUI();
+   }
+
+E. TICKET SYSTEM:
+
+   Ways to get tickets:
+
+   1. Match ticket dice (🎟️):
+      - Regular match: +2 tickets
+      - Super match: +4 tickets
+
+   2. Daily free ticket:
+      - Once per day (real-time), get 1 free ticket
+      - Use localStorage to track: localStorage.setItem('lastTicketClaim', Date.now())
+
+   3. Ticket booth (costs humans):
+      - Trade 2 humans for 3 tickets
+
+   function claimDailyTicket() {
+     const lastClaim = localStorage.getItem('lastTicketClaim');
+     const now = Date.now();
+     const oneDay = 24 * 60 * 60 * 1000;
+
+     if (!lastClaim || (now - parseInt(lastClaim)) > oneDay) {
+       gameState.tickets += 1;
+       localStorage.setItem('lastTicketClaim', now.toString());
+       showNotification('Daily ticket claimed!');
+     } else {
+       const timeLeft = oneDay - (now - parseInt(lastClaim));
+       const hoursLeft = Math.floor(timeLeft / (60 * 60 * 1000));
+       showNotification('Next ticket in ' + hoursLeft + ' hours');
+     }
+   }
+
+F. VISUAL UI (ASCII style):
+
+   In sidebar when in Theme Park:
+
+   ┌─ RIDES ─┐
+   🎡 Ferris   [####....] 4/10
+   🎢 Coaster  [##......] 2/10 ⚠️
+   🎠 Carousel [BROKEN] ❌
+   ☕ Teacups  [########] 10/10
+
+   Tickets: 5 🎟️
+
+   [ Use Ferris ] (1 🎟️)
+   [ Fix Carousel ] (1 👥)
+   [ Daily Ticket ] ✓ claimed
+
+TESTING CHECKPOINT:
+- Enter Theme Park, use a ride - verify effect triggers
+- Wait for maintenance to degrade - verify breakdown occurs
+- Fix broken ride - verify cost and restoration
+- Match ticket dice - verify tickets added
+- Claim daily ticket - verify localStorage tracking works
+
+───────────────────────────────────────────────────────────────────────────────
+5.3 SHELTER SYSTEM & BABY GROWTH
+───────────────────────────────────────────────────────────────────────────────
+
+OBJECTIVE: Give babies a purpose - they grow into humans if shelters exist
+
+A. SHELTER BUILDING:
+
+   Add "Build Shelter" button in lobby:
+
+   function buildShelter() {
+     // Costs resources
+     const cost = {
+       score: 100,
+       dice: 5 // 5 dice of any type
+     };
+
+     if (gameState.score < cost.score) {
+       showNotification('Need 100 score to build shelter!');
+       return;
+     }
+
+     // Check if we have 5 dice total
+     const totalDice = Object.values(gameState.dicePool).reduce((a,b) => a+b, 0);
+     if (totalDice < cost.dice) {
+       showNotification('Need 5 dice to build shelter!');
+       return;
+     }
+
+     gameState.score -= cost.score;
+
+     // Deduct dice from pools
+     let remaining = cost.dice;
+     for (let pool in gameState.dicePool) {
+       if (remaining <= 0) break;
+       const deduct = Math.min(gameState.dicePool[pool], remaining);
+       gameState.dicePool[pool] -= deduct;
+       remaining -= deduct;
+     }
+
+     gameState.shelters++;
+     showNotification('Shelter built!\n-100 Score\n-5 Dice');
+     updateUI();
+   }
+
+B. BABY GROWTH MECHANIC:
+
+   When baby is created, start growth timer:
+
+   function makeBaby() {
+     if (gameState.humans >= 2 && gameState.currentLevel === 'lobby') {
+       gameState.humans -= 2;
+       gameState.babies += 1;
+
+       // Track parents
+       gameState.parentsDice.push({
+         id: generateId(),
+         timestamp: Date.now()
+       });
+
+       // Start growth timer if shelters exist
+       if (gameState.shelters > 0) {
+         const babyTimer = setTimeout(() => {
+           growBaby();
+         }, 30000); // 30 seconds
+
+         gameState.babyTimers.push(babyTimer);
+       }
+
+       showNotification('👶 Baby Created!\nWill grow in 30s (if shelters exist)');
+       updateUI();
+     }
+   }
+
+   function growBaby() {
+     if (gameState.babies > 0 && gameState.shelters > 0) {
+       gameState.babies--;
+       gameState.humans++;
+       showNotification('👶→👥 Baby grew into adult!');
+       updateUI();
+     }
+   }
+
+C. VISUAL UI:
+
+   In sidebar:
+
+   ┌─ RESOURCES ─┐
+   Humans: 10 (2 parenting)
+   Babies: 3 (growing...)
+   Shelters: 2 🏠
+
+   [ Build Shelter ] (100 pts, 5 dice)
+
+   Show growth progress:
+   👶 → [####....] → 👥 (12s left)
+
+TESTING CHECKPOINT:
+- Build shelter - verify cost deducted
+- Make baby with shelter - verify 30s timer starts
+- Wait 30s - verify baby becomes human
+- Make baby without shelter - verify no growth occurs
+
+───────────────────────────────────────────────────────────────────────────────
+5.4 ADD ZOO AND THEME PARK TO LEVEL SELECTOR
+───────────────────────────────────────────────────────────────────────────────
+
+A. Update DICE_SETS:
+
+   const DICE_SETS = {
+     // ... existing ...
+     zoo: {
+       emojis: ['🐅', '🦁', '🐘', '🐍', '🦒', '🐒', '🧟‍♂️', '👨'],
+       poolKey: 'zoo'
+     },
+     themepark: {
+       emojis: ['🎡', '🎢', '🎪', '🎠', '🎭', '🎟️', '🧟‍♀️', '👩'],
+       poolKey: 'themepark'
+     }
+   };
+
+B. Update level selector:
+
+   <button class="level-btn" data-level="zoo">[ ZOO ]</button>
+   <button class="level-btn" data-level="themepark">[ PARK ]</button>
+
+C. Add to setupLevel:
+
+   function setupLevel(levelName) {
+     const pegConfigs = {
+       // ... existing ...
+       zoo: { shape: 'circle', color: '#4aaa4a', size: 20 },
+       themepark: { shape: 'square', color: '#ffaa44', size: 20 }
+     };
+
+     const config = pegConfigs[levelName];
+     createPegs(config);
+
+     // Initialize location-specific state
+     if (levelName === 'zoo' && !gameState.animals.zoo) {
+       initializeZoo();
+     }
+     if (levelName === 'themepark' && !gameState.rides.length) {
+       initializeThemePark();
+     }
+   }
+
+═══════════════════════════════════════════════════════════════════════════════
+PHASE 6: POLISH, EFFECTS, AND BALANCE
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJECTIVE: Make the game feel good, look good (in ASCII style), and play well
+
+───────────────────────────────────────────────────────────────────────────────
+6.1 VISUAL EFFECTS & ANIMATIONS
+───────────────────────────────────────────────────────────────────────────────
+
+A. MATCH ANIMATIONS:
+
+   When dice matched, show effect:
+
+   function showMatchEffect(diceArray, emoji) {
+     diceArray.forEach(dice => {
+       // Pulse effect
+       dice.element.style.animation = 'match-pulse 0.3s ease-out';
+
+       // Spawn particle text
+       const particle = document.createElement('div');
+       particle.className = 'match-particle';
+       particle.textContent = emoji;
+       particle.style.left = dice.element.style.left;
+       particle.style.top = dice.element.style.top;
+       document.getElementById('game-board').appendChild(particle);
+
+       setTimeout(() => particle.remove(), 1000);
+     });
+   }
+
+   CSS:
+   @keyframes match-pulse {
+     0% { transform: scale(1); opacity: 1; }
+     50% { transform: scale(1.3); opacity: 0.8; }
+     100% { transform: scale(1); opacity: 1; }
+   }
+
+   .match-particle {
+     position: absolute;
+     font-size: 40px;
+     animation: float-up 1s ease-out;
+     pointer-events: none;
+   }
+
+   @keyframes float-up {
+     0% { transform: translateY(0); opacity: 1; }
+     100% { transform: translateY(-100px); opacity: 0; }
+   }
+
+B. DAMAGE NUMBERS:
+
+   When zombies take damage:
+
+   function showDamageNumber(x, y, damage) {
+     const dmg = document.createElement('div');
+     dmg.className = 'damage-number';
+     dmg.textContent = '-' + damage + ' HP';
+     dmg.style.left = x + 'px';
+     dmg.style.top = y + 'px';
+     dmg.style.color = '#ff4444';
+     dmg.style.position = 'absolute';
+     dmg.style.fontSize = '16px';
+     dmg.style.fontWeight = 'bold';
+     dmg.style.animation = 'float-up 1s ease-out';
+     document.getElementById('game-board').appendChild(dmg);
+
+     setTimeout(() => dmg.remove(), 1000);
+   }
+
+C. SCORE POP:
+
+   When score increases:
+
+   function showScorePop(amount) {
+     const scorePop = document.createElement('div');
+     scorePop.className = 'score-pop';
+     scorePop.textContent = '+' + amount;
+     scorePop.style.position = 'absolute';
+     scorePop.style.top = '10px';
+     scorePop.style.right = '10px';
+     scorePop.style.color = '#00ff00';
+     scorePop.style.fontSize = '24px';
+     scorePop.style.fontWeight = 'bold';
+     scorePop.style.animation = 'score-bounce 0.5s ease-out';
+     document.getElementById('game-area').appendChild(scorePop);
+
+     setTimeout(() => scorePop.remove(), 500);
+   }
+
+D. SCREEN SHAKE:
+
+   For dramatic events (boss killed, store cleared):
+
+   function screenShake() {
+     const gameArea = document.getElementById('game-area');
+     gameArea.style.animation = 'screen-shake 0.5s ease-in-out';
+     setTimeout(() => {
+       gameArea.style.animation = '';
+     }, 500);
+   }
+
+   CSS:
+   @keyframes screen-shake {
+     0%, 100% { transform: translateX(0); }
+     10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+     20%, 40%, 60%, 80% { transform: translateX(5px); }
+   }
+
+E. SOUND EFFECTS (text-based):
+
+   Since no audio, use text-based sound effects:
+
+   function playSound(soundType) {
+     const sounds = {
+       match: '*POP*',
+       fire: '~WHOOSH~',
+       money: '*CHING*',
+       damage: '-THWACK-',
+       explosion: '***BOOM***',
+       victory: '♪♪♪ VICTORY ♪♪♪'
+     };
+
+     const sound = document.createElement('div');
+     sound.className = 'sound-effect';
+     sound.textContent = sounds[soundType];
+     sound.style.position = 'fixed';
+     sound.style.top = '50%';
+     sound.style.left = '50%';
+     sound.style.transform = 'translate(-50%, -50%)';
+     sound.style.fontSize = '20px';
+     sound.style.color = '#ffffff';
+     sound.style.animation = 'fade-out 0.5s ease-out';
+     document.body.appendChild(sound);
+
+     setTimeout(() => sound.remove(), 500);
+   }
+
+───────────────────────────────────────────────────────────────────────────────
+6.2 DIFFICULTY BALANCING
+───────────────────────────────────────────────────────────────────────────────
+
+GOAL: Make game challenging but fair. Roguelike feel with meaningful decisions.
+
+A. RESOURCE TUNING:
+
+   Starting values (after testing):
+
+   TIGHT RESOURCES:
+   - Humans: 6 (down from 10)
+   - Babies: 2 (down from 3)
+   - Dice pools: 12 each (down from 15-20)
+   - Starting zombies: 3 per store (manageable but pressure)
+
+B. MATCH REWARDS:
+
+   Reduce dice regeneration:
+
+   - Regular match: +0 dice (no regeneration)
+   - Super match (3+): +2 dice (down from 5)
+   - Money match: +5 dice all pools (significant reward)
+   - Store clear: +5 dice (encourages clearing)
+
+   This makes dice drops feel valuable and forces prioritization.
+
+C. ZOMBIE SPAWN RATE:
+
+   Dynamic difficulty curve:
+
+   Phase 1 (0-5 min):   1 zombie every 60 seconds
+   Phase 2 (5-10 min):  1 zombie every 45 seconds
+   Phase 3 (10-15 min): 1 zombie every 30 seconds
+   Phase 4 (15+ min):   1 zombie every 20 seconds
+
+   function getDynamicSpawnRate() {
+     const elapsedMinutes = (Date.now() - gameStartTime) / 60000;
+     if (elapsedMinutes < 5) return 60000;
+     if (elapsedMinutes < 10) return 45000;
+     if (elapsedMinutes < 15) return 30000;
+     return 20000;
+   }
+
+D. COST BALANCING:
+
+   Make actions meaningful:
+
+   - Make baby: 2 humans (high cost, but babies grow)
+   - Feed animals: 3 food dice (moderate, prevents aggression)
+   - Fix ride: 1 human (reasonable maintenance cost)
+   - Build shelter: 100 score + 5 dice (expensive but permanent)
+   - Capture animal: 1 human (tactical decision)
+
+E. SCORING BALANCE:
+
+   Make score meaningful:
+
+   - Used to build shelters
+   - Potential future use: Buy dice, hire humans, unlock locations
+
+   Current earning rate:
+   - Match: 10 points per die
+   - Super match: 30 points per die
+   - Zombie kill: 15 points
+   - Survival: 10 points per second
+
+   To build shelter (100 pts), need ~10 matches or 10 seconds survival
+
+F. DEATH SPIRAL PREVENTION:
+
+   If player is doing poorly, give small helps:
+
+   function checkStrugglingPlayer() {
+     const totalDice = Object.values(gameState.dicePool).reduce((a,b) => a+b, 0);
+
+     if (totalDice < 3 && gameState.humans < 2) {
+       // Player is struggling, give small help
+       showNotification('Emergency supplies found!\n+2 Dice, +1 Human');
+       gameState.dicePool.mall += 2;
+       gameState.humans += 1;
+       updateUI();
+     }
+   }
+
+   Call this every 2 minutes.
+
+───────────────────────────────────────────────────────────────────────────────
+6.3 UI/UX IMPROVEMENTS
+───────────────────────────────────────────────────────────────────────────────
+
+A. BETTER FEEDBACK:
+
+   - Show cooldowns on buttons:
+     [ Drop Dice ] → [ Drop Dice (0.5s) ] during cooldown
+
+   - Show costs clearly:
+     [ Make Baby ] (2 👥)
+     [ Feed Animals ] (3 🍕)
+
+   - Disable buttons with visual indication when can't afford
+
+B. TUTORIAL/HELP:
+
+   Add help text in sidebar:
+
+   ┌─ HOW TO PLAY ─┐
+   • Drop dice from pool
+   • Match 2+ in column
+   • Swap columns to match
+   • Clear zombies to win
+   • Manage resources!
+
+   [ Toggle Help ]
+
+C. STATS TRACKING:
+
+   Track and display:
+
+   ┌─ STATS ─┐
+   Survived: 5m 23s
+   Zombies killed: 15
+   Stores cleared: 2/4
+   Highest combo: x5
+
+D. KEYBOARD SHORTCUTS:
+
+   Add hotkeys for common actions:
+
+   - 1-7: Select columns
+   - Space: Drop dice
+   - B: Make baby (if in lobby)
+   - F: Feed animals (if in zoo)
+   - R: Restart game (when game over)
+
+E. VISUAL STATES:
+
+   Highlight important states:
+
+   - Low dice warning: Flash dice pool in red when < 5 total
+   - Zombie alert: Flash zombie count when > 10
+   - Resource critical: Highlight humans in red when < 2
+   - Store ready: Pulse cleared stores with green
+
+───────────────────────────────────────────────────────────────────────────────
+6.4 GAME LOOP OPTIMIZATION
+───────────────────────────────────────────────────────────────────────────────
+
+A. PERFORMANCE:
+
+   - Limit active timers (clear unused ones)
+   - Use requestAnimationFrame for visual updates
+   - Batch DOM updates
+   - Limit particle effects (max 20 on screen)
+
+B. SAVE/LOAD:
+
+   Add save system using localStorage:
+
+   function saveGame() {
+     const saveData = {
+       gameState: gameState,
+       timestamp: Date.now()
+     };
+     localStorage.setItem('zombswap_save', JSON.stringify(saveData));
+   }
+
+   function loadGame() {
+     const saved = localStorage.getItem('zombswap_save');
+     if (saved) {
+       const data = JSON.parse(saved);
+       gameState = data.gameState;
+       // Restore visual state
+       updateUI();
+       restoreColumnState(gameState.currentLevel);
+     }
+   }
+
+   // Auto-save every 30 seconds
+   setInterval(saveGame, 30000);
+
+C. RESTART MECHANIC:
+
+   function restartGame() {
+     // Clear all timers
+     gameState.babyTimers.forEach(t => clearTimeout(t));
+     gameState.fireTimers.forEach(t => clearTimeout(t));
+
+     // Reset to initial state
+     gameState = {
+       score: 0,
+       zombies: 9, // 3 per store
+       humans: 6,
+       babies: 2,
+       shelters: 0,
+       // ... reset all
+     };
+
+     // Clear board
+     document.querySelectorAll('.die').forEach(el => el.remove());
+     document.querySelectorAll('.peg').forEach(el => el.remove());
+
+     // Restart
+     init();
+   }
+
+═══════════════════════════════════════════════════════════════════════════════
+TESTING & ITERATION PLAN
+═══════════════════════════════════════════════════════════════════════════════
+
+After each phase:
+
+1. PLAYTEST:
+   - Play for 10+ minutes
+   - Try to break the game
+   - Test edge cases
+
+2. BALANCE CHECK:
+   - Is it too easy/hard?
+   - Are resources too plentiful/scarce?
+   - Do decisions feel meaningful?
+
+3. BUG HUNT:
+   - Check console for errors
+   - Test all buttons/interactions
+   - Verify state persistence
+
+4. ITERATE:
+   - Adjust values based on feel
+   - Fix any bugs found
+   - Add polish where needed
+
+═══════════════════════════════════════════════════════════════════════════════
+FINAL CHECKLIST
+═══════════════════════════════════════════════════════════════════════════════
+
+PHASE 4:
+[ ] Zombie entities with health bars
+[ ] Store clearing rewards
+[ ] Fire spread mechanic
+[ ] Money enhanced effects
+[ ] Bonus basket implementation
+[ ] Parent tracking system
+[ ] Zombie spawn pressure
+[ ] Lose conditions
+
+PHASE 5:
+[ ] Zoo location with 6 animal types
+[ ] Animal hunger system
+[ ] Animal escape mechanic
+[ ] Feeding system
+[ ] Theme Park location
+[ ] 4 rides with effects
+[ ] Maintenance system
+[ ] Ticket system
+[ ] Shelter building
+[ ] Baby growth mechanic
+
+PHASE 6:
+[ ] Match animations
+[ ] Damage numbers
+[ ] Score pops
+[ ] Screen shake
+[ ] Text sound effects
+[ ] Difficulty balance
+[ ] Resource tuning
+[ ] UI improvements
+[ ] Keyboard shortcuts
+[ ] Save/load system
+[ ] Stats tracking
+[ ] Help system
+
+═══════════════════════════════════════════════════════════════════════════════
+ESTIMATED TIMELINE
+═══════════════════════════════════════════════════════════════════════════════
+
+Phase 4: 2-3 hours (core mechanics enhancement)
+Phase 5: 3-4 hours (complex systems)
+Phase 6: 2-3 hours (polish and balance)
+
+Total: 7-10 hours to full implementation
+
+Each checkpoint offers playable increments - can ship partial builds!
+
+═══════════════════════════════════════════════════════════════════════════════
+END OF IMPLEMENTATION PLAN
+═══════════════════════════════════════════════════════════════════════════════
